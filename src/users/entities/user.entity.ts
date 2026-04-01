@@ -1,7 +1,16 @@
-import { BeforeInsert, Column, Entity,PrimaryColumn, Index, OneToOne, JoinColumn, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  PrimaryColumn,
+  Index,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { Profile } from './profile.entity';
 import { v7 as uuidv7 } from 'uuid';
-import { VerificationCode } from '../../auth/entities/verification-codes.entity';
 import { SocialAccountDto } from '../../auth/entities/social-accounts.entity';
 
 @Entity('users')
@@ -17,14 +26,14 @@ export class User {
   @Column({ unique: true, nullable: true })
   username: string;
 
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true })
   password: string;
 
   @Column({ default: false })
   is_verified: boolean;
 
-  @Column({ nullable: true, select: false })
-  refresh_token: string;
+  @Column({ type: 'text', nullable: true })
+  refresh_token: string | null;
 
   @Column({ nullable: true })
   profile_id: string;
@@ -40,12 +49,9 @@ export class User {
   @JoinColumn({ name: 'profile_id' })
   profile: Profile;
 
-  @OneToMany(() => VerificationCode, (verificationCode) => verificationCode.user)
-  verificationCodes: VerificationCode[];
-
   @OneToMany(() => SocialAccountDto, (socialAccount) => socialAccount.user)
   socialAccounts: SocialAccountDto[];
-  
+
   @BeforeInsert()
   generateId() {
     if (!this.id) {
