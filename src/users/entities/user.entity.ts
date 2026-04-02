@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Profile } from './profile.entity';
 import { v7 as uuidv7 } from 'uuid';
-import { SocialAccountDto } from '../../auth/entities/social-accounts.entity';
+import { SocialAccount } from '../../auth/entities/social-accounts.entity';
 
 @Entity('users')
 export class User {
@@ -45,12 +45,12 @@ export class User {
   @CreateDateColumn()
   created_at: Date;
 
-  @OneToOne(() => Profile, (profile) => profile.user)
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn({ name: 'profile_id' })
   profile: Profile;
 
-  @OneToMany(() => SocialAccountDto, (socialAccount) => socialAccount.user)
-  socialAccounts: SocialAccountDto[];
+  @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
+  socialAccounts: SocialAccount[];
 
   @BeforeInsert()
   generateId() {

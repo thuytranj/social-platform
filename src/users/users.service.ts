@@ -1,20 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { plainToInstance } from 'class-transformer';
 import { UserResponseDto } from './dto/user-response.dto';
+import { ProfileDto } from './dto/profile-dto';
+import { Profile } from './entities/profile.entity';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { SocialAccount } from '../auth/entities/social-accounts.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private readonly userRepository: Repository<User>) {}
+  constructor(@InjectRepository(User) private readonly userRepository: Repository<User>, @InjectRepository(Profile) private readonly profileRepository: Repository<Profile>) {}
   
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, profileDto?: ProfileDto) {
     const newUser = await this.userRepository.create(createUserDto);
 
-    return await this.userRepository.save(newUser);
+    const savedUser = await this.userRepository.save(newUser);
+
+    if (profileDto) {
+      await this.updateProfile(savedUser.id, profileDto);
+    }
+
+    return savedUser;
   }
 
   findAll() {
@@ -33,20 +42,26 @@ export class UsersService {
   }
 
   findOneByEmailRaw(email: string) {
-    return this.userRepository.findOne({ where: { email } });
+    return this.userRepository.findOne({ where: { email }, relations: ['socialAccounts', 'profile'] });
   }
 
   findOneByUsernameRaw(username: string) {
-    return this.userRepository.findOne({ where: { username } });
+    return this.userRepository.findOne({ where: { username }, relations: ['profile'] });
   }
 
   findOneByIdRaw(id: string) {
     return this.userRepository.findOne({ where: { id } });
   }
-  
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  updateUser(id: string, updateUserDto: UpdateUserDto) {
     return this.userRepository.update(id, updateUserDto);
+  }
+
+  updateProfile(userId: string, profileDto: ProfileDto) {
+    return this.profileRepository.save({
+      ...profileDto,
+      user: { id: userId },
+    });
   }
 
   verifyEmail(email: string) {

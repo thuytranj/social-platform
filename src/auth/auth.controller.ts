@@ -15,7 +15,8 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import type { Response } from 'express';
-import { JwtRefreshGuard } from './jwt-refresh-token-guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh-token-guard';
+import { GoogleAuthGuard } from './guards/google-auth-guard';
 
 @Controller('auth')
 export class AuthController {
@@ -100,5 +101,31 @@ export class AuthController {
     await this.authService.logout(userId);
 
     return { message: 'Logged out successfully' };
+  }
+
+  @Get('google')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuth() {
+    // This route will be handled by the GoogleAuthGuard
+  }
+
+  
+  @Get('google/callback')
+  @UseGuards(GoogleAuthGuard)
+  async googleAuthRedirect(@Req() req, @Res({ passthrough: true }) res: Response) {
+    const { user, access_token, refresh_token } = req.user;
+    
+    res.cookie('refresh_token', refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return {
+      message: 'Login successful',
+      user,
+      access_token,
+    };
   }
 }

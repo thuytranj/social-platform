@@ -4,18 +4,21 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt-strategy';
-import { JwtRefreshTokenStrategy } from './jwt-refresh-token-strategy';
+import { JwtStrategy } from './strategies/jwt-strategy';
+import { JwtRefreshTokenStrategy } from './strategies/jwt-refresh-token-strategy';
 import { EmailModule } from '../email/email.module';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { VerificationCode } from './entities/verification-codes.entity';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { SocialAccount } from './entities/social-accounts.entity';
+import { SocialAccountsService } from './social_accounts.service';
 
 @Module({
   imports: [
     UsersModule,
     EmailModule,
-    TypeOrmModule.forFeature([VerificationCode]),
+    TypeOrmModule.forFeature([VerificationCode, SocialAccount]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -29,6 +32,13 @@ import { VerificationCode } from './entities/verification-codes.entity';
     }),
   ],
   controllers: [AuthController],
-  providers: [OtpService, AuthService, JwtStrategy, JwtRefreshTokenStrategy],
+  providers: [
+    OtpService,
+    AuthService,
+    JwtStrategy,
+    JwtRefreshTokenStrategy,
+    GoogleStrategy,
+    SocialAccountsService,
+  ],
 })
 export class AuthModule {}

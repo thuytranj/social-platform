@@ -6,6 +6,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { VerificationCodeType } from './entities/verification-codes.entity';
+import { SocialAccountsService } from './social_accounts.service';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { ProfileDto } from 'src/users/dto/profile-dto';
+import { SocialAccountDto } from './dto/social_account.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +19,7 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly socialAccountsService: SocialAccountsService,
   ) {}
 
   private hashString(str: string): string {
@@ -94,7 +100,7 @@ export class AuthService {
       this.generateToken(payload, 'refresh'),
     ]);
 
-    await this.usersService.update(user.id, { refresh_token: this.hashString(refresh_token) });
+    await this.usersService.updateUser(user.id, { refresh_token: this.hashString(refresh_token) });
 
     return {
       message: 'Login successful',
@@ -105,7 +111,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    await this.usersService.update(userId, { refresh_token: null });
+    await this.usersService.updateUser(userId, { refresh_token: null });
     return { message: 'Logout successful' };
   }
 
@@ -133,7 +139,7 @@ export class AuthService {
       this.generateToken(payload, 'refresh'),
     ]);
 
-    await this.usersService.update(user.id, { refresh_token: this.hashString(new_refresh_token) });
+    await this.usersService.updateUser(user.id, { refresh_token: this.hashString(new_refresh_token) });
 
     return {
       access_token,
@@ -153,8 +159,75 @@ export class AuthService {
     }
 
     const hashedPassword = this.hashString(newPassword);
-    await this.usersService.update(user.id, { password: hashedPassword });
+    await this.usersService.updateUser(user.id, { password: hashedPassword });
 
     return { message: 'Password reset successful. Please log in with your new password.' };
+  }
+
+  async validateSocialUser(user: any) {
+    const { provider, providerUserId, email, username, avatar } = user;
+
+    if (!email) {
+      throw new BadRequestException('Email is required for social login');
+    }
+    
+    const existingUser = await this.usersService.findOneByEmailRaw(email);
+
+    let newUser : User | null = null;
+
+    if (existingUser) {
+      if (!existingUser.socialAccounts.some(account => account.provider === provider && account.provider_user_id === providerUserId)) {
+        await this.socialAccountsService.create({
+          provider,
+          provider_user_id: providerUserId,
+          user_id: existingUser.id,
+        })
+      }
+
+      if (!existingUser.profile?.avatar_url && avatar) {
+        await this.usersService.updateProfile(existingUser.id, {
+          avatar_url: avatar,
+        });
+      }
+    } else {
+      const userInfo: CreateUserDto = {
+        email,
+        username,
+        is_verified: true,
+      }
+
+      const profileInfo: ProfileDto = {
+        avatar_url: avatar,
+      }
+
+      newUser = await this.usersService.create(userInfo, profileInfo);
+
+      await this.socialAccountsService.create({
+        provider,
+        provider_user_id: providerUserId,
+        user_id: newUser.id,
+      });
+    }
+
+    const finalUser = existingUser || newUser;
+
+    const payload = {
+      sub: finalUser?.id,
+      email: finalUser?.email,
+      username: finalUser?.username,
+    };
+
+    const [access_token, refresh_token] = await Promise.all([
+      this.generateToken(payload, 'access'),
+      this.generateToken(payload, 'refresh'),
+    ]);
+
+    await this.usersService.updateUser(finalUser!.id, { refresh_token: this.hashString(refresh_token) });
+
+    return {
+      user: finalUser,
+      access_token,
+      refresh_token,
+    };
   }
 }
