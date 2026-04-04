@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from "class-transformer";
-import { UserResponseDto } from "src/users/dto/user-response.dto";
+import { UserResponseDto } from "@/users/dto/user-response.dto";
 
 export class FriendshipResponseDto {
   @Expose()

@@ -13,20 +13,20 @@ export enum SocialProvider {
   @Index(['provider', 'provider_user_id'])
 export class SocialAccount {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  user_id: string;
+  user_id!: string;
   
   @Column({type: 'enum', enum: SocialProvider})
-  provider: SocialProvider;
+  provider!: SocialProvider;
 
   @Column()
-  provider_user_id: string;
+  provider_user_id!: string;
 
   @ManyToOne(() => User, (user) => user.socialAccounts, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 }

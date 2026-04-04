@@ -17,47 +17,47 @@ import { Friendship } from '../../friendships/entities/friendship.entity';
 @Entity('users')
 export class User {
   @PrimaryColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index()
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Index()
   @Column({ unique: true, nullable: true })
-  username: string;
+  username!: string;
 
   @Column({ nullable: true })
-  password: string;
+  password!: string;
 
   @Column({ default: false })
-  is_verified: boolean;
+  is_verified!: boolean;
 
   @Column({ type: 'text', nullable: true })
-  refresh_token: string | null;
+  refresh_token!: string | null;
 
   @Column({ nullable: true })
-  profile_id: string;
+  profile_id!: string;
 
   @Column({ type: 'timestamp', nullable: true })
   @Index()
-  last_active_at: Date;
+  last_active_at!: Date;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn({ name: 'profile_id' })
-  profile: Profile;
+  profile!: Profile;
 
   @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
-  socialAccounts: SocialAccount[];
+  socialAccounts!: SocialAccount[];
 
   @OneToMany(() => Friendship, (friendship) => friendship.requester)
-  requester_friendships: Friendship[];
+  requester_friendships!: Friendship[];
 
   @OneToMany(() => Friendship, (friendship) => friendship.addressee)
-  addressee_friendships: Friendship[];
+  addressee_friendships!: Friendship[];
 
   @BeforeInsert()
   generateId() {

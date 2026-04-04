@@ -2,30 +2,30 @@ import { Expose, Exclude, Type } from 'class-transformer';
 import { ProfileResponseDto } from './profile-response.dto';
 export class UserResponseDto {
   @Expose()
-  id: string;
+  id!: string;
 
   @Expose()
-  email: string;
+  email!: string;
 
   @Expose()
-  username: string;
+  username!: string;
 
   @Exclude()
-  password: string;
+  password!: string;
 
   @Expose()
-  is_verified: boolean;
+  is_verified!: boolean;
 
   @Exclude()
-  refresh_token: string;
+  refresh_token!: string;
 
   @Expose()
-  last_active_at: Date;
+  last_active_at!: Date;
 
   @Expose()
-  created_at: Date;
+  created_at!: Date;
 
   @Expose()
   @Type(() => ProfileResponseDto)
-  profile: ProfileResponseDto;
+  profile!: ProfileResponseDto;
 }

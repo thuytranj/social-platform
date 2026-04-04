@@ -6,8 +6,8 @@ export class SocialAccountDto {
   user_id?: string;
 
   @IsEnum(SocialProvider)
-  provider: SocialProvider;
+  provider!: SocialProvider;
 
   @IsString()
-  provider_user_id: string;
+  provider_user_id!: string;
 }
