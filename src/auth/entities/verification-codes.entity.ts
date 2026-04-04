@@ -10,28 +10,28 @@ export enum VerificationCodeType {
 @Unique(['email', 'code', 'type'])
 export class VerificationCode {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  email: string;
+  email!: string;
 
   @Index()
   @Column()
-  code: string;
+  code!: string;
 
   @Column({ type: 'enum', enum: VerificationCodeType })
-  type: VerificationCodeType;
+  type!: VerificationCodeType;
 
   @Column({ default: false })
-  is_used: boolean;
+  is_used!: boolean;
 
   @Column({ default: 0 })
-  attempts_count: number;
+  attempts_count!: number;
 
   @Index()
   @Column({ type: 'timestamp' })
-  expires_at: Date;
+  expires_at!: Date;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 }

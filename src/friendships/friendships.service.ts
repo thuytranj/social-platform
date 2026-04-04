@@ -4,11 +4,13 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateFriendshipDto } from './dto/creat-friendship.dto';
 import { FriendshipStatus } from './entities/friendship.entity';
-import { UsersService } from '../users/users.service';
+import { UsersService } from '@/users/users.service';
 import { ConfirmFriendshipDto } from './dto/confirm-friendship-dto';
 import { plainToInstance } from 'class-transformer';
 import { FriendshipResponseDto } from './dto/friendship-response.dto';
-import { UserResponseDto } from 'src/users/dto/user-response.dto';
+import { UserResponseDto } from '@/users/dto/user-response.dto';
+import { User } from '@/users/entities/user.entity';
+import { In } from 'typeorm';
 
 @Injectable()
 export class FriendshipsService {
@@ -16,6 +18,9 @@ export class FriendshipsService {
     @InjectRepository(Friendship)
     private friendshipRepository: Repository<Friendship>,
     private usersService: UsersService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>
+
   ) {}
 
   async create(requester_id: string, createFriendshipDto: CreateFriendshipDto) {
@@ -174,6 +179,9 @@ export class FriendshipsService {
   }
 
   async blockUser(userId: string, blockedUserId: string) {
+    if (userId === blockedUserId) {
+      throw new BadRequestException('You cannot block yourself.');
+    }
     const user_low_id = userId < blockedUserId ? userId : blockedUserId;
     const user_high_id = userId > blockedUserId ? userId : blockedUserId;
 
@@ -195,13 +203,21 @@ export class FriendshipsService {
       return this.friendshipRepository.save(friendship);
     }
 
+    if (existingFriendship.status === FriendshipStatus.BLOCKED) {
+      throw new BadRequestException('This user is already blocked.');
+    }
+
     return this.friendshipRepository.update(
       { user_high_id, user_low_id },
-      { status: FriendshipStatus.BLOCKED },
+      { requester_id: userId, addressee_id: blockedUserId, status: FriendshipStatus.BLOCKED },
     );
   }
 
   async unblockUser(userId: string, unblockedUserId: string) {
+    if (userId === unblockedUserId) {
+      throw new BadRequestException('You cannot unblock yourself.');
+    }
+    
     const user_low_id = userId < unblockedUserId ? userId : unblockedUserId;
     const user_high_id = userId > unblockedUserId ? userId : unblockedUserId;
 
@@ -213,33 +229,38 @@ export class FriendshipsService {
       throw new BadRequestException('You have not blocked this user.');
     }
 
+    if (existingFriendship.requester_id !== userId) {
+      throw new BadRequestException('You cannot unblock this user because you are not the one who blocked this relation.');
+    }
+
     return this.friendshipRepository.delete({ user_high_id, user_low_id });
   }
   
   async getBlockedUsers(userId: string) {
     const blockedFriendships = await this.friendshipRepository.find({
       where: [
-        { requester_id: userId, status: FriendshipStatus.BLOCKED },
-        { addressee_id: userId, status: FriendshipStatus.BLOCKED },
+        { requester_id: userId, status: FriendshipStatus.BLOCKED }
       ],
       relations: [
-        'requester',
         'addressee',
-        'requester.profile',
         'addressee.profile',
       ],
     });
 
     return blockedFriendships.map((friendship) => {
-      if (friendship.requester_id === userId) {
-        return plainToInstance(UserResponseDto, friendship.addressee, {
-          excludeExtraneousValues: true,
-        });
-      } else {
-        return plainToInstance(UserResponseDto, friendship.requester, {
-          excludeExtraneousValues: true,
-        });
-      }
+      return plainToInstance(UserResponseDto, friendship.addressee, {
+        excludeExtraneousValues: true,
+      });
     });
   } 
+
+  async getMutualFriends(userId: string, otherUserId: string) {
+    const listFriendsOfUser = await this.friendshipRepository.createQueryBuilder('friendship').select('CASE WHEN friendship.requester_id = :userId THEN friendship.addressee_id ELSE friendship.requester_id END', 'friendId').where('(friendship.requester_id = :userId OR friendship.addressee_id = :userId) AND friendship.status = :status', { userId, status: FriendshipStatus.ACCEPTED }).getRawMany();
+
+    const mutualFriendIds = await this.friendshipRepository.createQueryBuilder('friendship').select('CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END', 'friendId').where('(friendship.requester_id = :otherUserId OR friendship.addressee_id = :otherUserId) AND friendship.status = :status', { otherUserId, status: FriendshipStatus.ACCEPTED }).andWhere('CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END IN (:...friendIds)', { friendIds: listFriendsOfUser.map(f => f.friendId) }).getRawMany();
+
+    const mutualFriends = await this.userRepository.find({where: { id: In(mutualFriendIds.map(f => f.friendId)) }, relations: ['profile']});
+
+    return mutualFriends;
+  }
 }

@@ -2,10 +2,10 @@ import { IsEmail, IsString, IsStrongPassword } from 'class-validator';
 
 export class RegisterDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
-  username: string;
+  username!: string;
 
   @IsStrongPassword({
     minLength: 8,
@@ -14,5 +14,5 @@ export class RegisterDto {
     minNumbers: 1,
     minSymbols: 1,
   })
-  password: string;
+  password!: string;
 }

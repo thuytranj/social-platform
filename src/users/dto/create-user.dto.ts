@@ -2,7 +2,7 @@ import { IsEmail, IsString, IsStrongPassword, IsBoolean } from "class-validator"
 
 export class CreateUserDto {
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsString()
   username?: string;

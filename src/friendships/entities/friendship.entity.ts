@@ -17,39 +17,39 @@ export enum FriendshipStatus {
 @Check(`"requester_id" <> "addressee_id"`)
 export class Friendship {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  requester_id: string;
+  requester_id!: string;
 
   @Column()
-  addressee_id: string;
+  addressee_id!: string;
 
   @Column({
     type: 'enum',
     enum: FriendshipStatus,
     default: FriendshipStatus.PENDING,
   })
-  status: FriendshipStatus;
+  status: FriendshipStatus = FriendshipStatus.PENDING;
 
   @Column()
-  user_low_id: string;
+  user_low_id!: string;
 
   @Column()
-  user_high_id: string;
+  user_high_id!: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  created_at!: Date;
 
   @ManyToOne(() => User, (user) => user.requester_friendships, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'requester_id' })
-  requester: User;
+  requester!: User;
 
   @ManyToOne(() => User, (user) => user.addressee_friendships, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'addressee_id' })
-  addressee: User;
+  addressee!: User;
 }

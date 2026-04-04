@@ -10,26 +10,26 @@ export enum Gender {
 @Entity('profiles')
 export class Profile {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ nullable: true })
-  full_name: string;
+  full_name!: string;
 
   @Column({ type: 'enum', enum: Gender, nullable: true })
-  sex: Gender
+  sex!: Gender;
 
   @Column({ nullable: true, type: 'date' })
-  date_of_birth: Date;
+  date_of_birth!: Date;
 
   @Column({ nullable: true })
-  avatar_url: string;
+  avatar_url!: string;
 
   @Column({ nullable: true })
-  cover_url: string;
+  cover_url!: string;
 
   @Column({ type: 'text', nullable: true })
-  bio: string;
+  bio!: string;
 
   @OneToOne(() => User, (user) => user.profile)
-  user: User;
+  user!: User;
 }

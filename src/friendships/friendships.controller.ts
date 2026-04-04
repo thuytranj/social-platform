@@ -60,6 +60,11 @@ export class FriendshipsController {
     return this.friendshipsService.getBlockedUsers(req.user.sub);
   }
 
+  @Get('/mutual-friends')
+  getMutualFriends(@Req() req, @Body('otherUserId') otherUserId: string) {
+    return this.friendshipsService.getMutualFriends(req.user.sub, otherUserId);
+  }
+
   @Patch('/block')
   blockUser(@Req() req, @Body() body: BlockUserDto) {
     return this.friendshipsService.blockUser(req.user.sub, body.blockUserId);
@@ -69,4 +74,5 @@ export class FriendshipsController {
   unblockUser(@Req() req, @Body() body: BlockUserDto) {
     return this.friendshipsService.unblockUser(req.user.sub, body.blockUserId);
   }
+
 }
