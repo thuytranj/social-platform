@@ -1,8 +1,18 @@
-import { BeforeInsert, Column, Entity,PrimaryColumn, Index, OneToOne, JoinColumn, CreateDateColumn, OneToMany } from 'typeorm';
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  PrimaryColumn,
+  Index,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  OneToMany,
+} from 'typeorm';
 import { Profile } from './profile.entity';
 import { v7 as uuidv7 } from 'uuid';
-import { VerificationCode } from '../../auth/entities/verification-codes.entity';
-import { SocialAccountDto } from '../../auth/entities/social-accounts.entity';
+import { SocialAccount } from '../../auth/entities/social-accounts.entity';
+import { Friendship } from '../../friendships/entities/friendship.entity';
 
 @Entity('users')
 export class User {
@@ -17,14 +27,14 @@ export class User {
   @Column({ unique: true, nullable: true })
   username: string;
 
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true })
   password: string;
 
   @Column({ default: false })
   is_verified: boolean;
 
-  @Column({ nullable: true, select: false })
-  refresh_token: string;
+  @Column({ type: 'text', nullable: true })
+  refresh_token: string | null;
 
   @Column({ nullable: true })
   profile_id: string;
@@ -36,16 +46,19 @@ export class User {
   @CreateDateColumn()
   created_at: Date;
 
-  @OneToOne(() => Profile, (profile) => profile.user)
+  @OneToOne(() => Profile, (profile) => profile.user, { cascade: true })
   @JoinColumn({ name: 'profile_id' })
   profile: Profile;
 
-  @OneToMany(() => VerificationCode, (verificationCode) => verificationCode.user)
-  verificationCodes: VerificationCode[];
+  @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
+  socialAccounts: SocialAccount[];
 
-  @OneToMany(() => SocialAccountDto, (socialAccount) => socialAccount.user)
-  socialAccounts: SocialAccountDto[];
-  
+  @OneToMany(() => Friendship, (friendship) => friendship.requester)
+  requester_friendships: Friendship[];
+
+  @OneToMany(() => Friendship, (friendship) => friendship.addressee)
+  addressee_friendships: Friendship[];
+
   @BeforeInsert()
   generateId() {
     if (!this.id) {

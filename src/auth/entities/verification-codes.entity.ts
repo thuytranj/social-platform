@@ -1,5 +1,5 @@
 import { User } from "../../users/entities/user.entity";
-import { Column, Entity, JoinColumn, PrimaryGeneratedColumn, ManyToOne, Index } from "typeorm";
+import { Column, Entity, JoinColumn, PrimaryGeneratedColumn, ManyToOne, Index, Unique, CreateDateColumn } from "typeorm";
 
 export enum VerificationCodeType {
   EMAIL_VERIFICATION = 'email_verification',
@@ -7,12 +7,13 @@ export enum VerificationCodeType {
 }
 
 @Entity('verification_codes')
+@Unique(['email', 'code', 'type'])
 export class VerificationCode {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  user_id: string;
+  email: string;
 
   @Index()
   @Column()
@@ -31,9 +32,6 @@ export class VerificationCode {
   @Column({ type: 'timestamp' })
   expires_at: Date;
 
-  @ManyToOne(() => User, (user) => user.verificationCodes, {
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @CreateDateColumn()
+  created_at: Date;
 }

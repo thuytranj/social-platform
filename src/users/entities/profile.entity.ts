@@ -1,6 +1,5 @@
-import { BeforeInsert, Column, Entity, OneToOne, PrimaryColumn } from 'typeorm';
+import {  Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
-import { v7 as uuidv7 } from 'uuid';
 
 export enum Gender {
   MALE = 'male',
@@ -10,7 +9,7 @@ export enum Gender {
 
 @Entity('profiles')
 export class Profile {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column({ nullable: true })
@@ -33,12 +32,4 @@ export class Profile {
 
   @OneToOne(() => User, (user) => user.profile)
   user: User;
-
-  @BeforeInsert()
-  generateId() {
-    if (!this.id) {
-      this.id = uuidv7();
-    }
-  }
 }
-

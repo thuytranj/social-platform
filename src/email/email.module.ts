@@ -3,6 +3,7 @@ import { EmailService } from './email.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -15,15 +16,15 @@ import { ConfigService } from '@nestjs/config';
             user: configService.get('EMAIL_USER'),
             pass: configService.get('EMAIL_PASSWORD'),
           },
-          defaults: {
-            from: `"No Reply" <${configService.get('EMAIL_USER')}>`,
-          },
-          template: {
-            dir: __dirname + '/templates',
-            adapter: new HandlebarsAdapter(),
-            options: {
-              strict: true,
-            },
+        },
+        defaults: {
+          from: `"No Reply" <${configService.get('EMAIL_USER')}>`,
+        },
+        template: {
+          dir: join(__dirname, 'templates'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
           },
         },
       }),

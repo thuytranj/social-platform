@@ -11,7 +11,7 @@ export enum SocialProvider {
 @Entity('social_accounts')
   @Unique(['provider', 'provider_user_id'])
   @Index(['provider', 'provider_user_id'])
-export class SocialAccountDto {
+export class SocialAccount {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
