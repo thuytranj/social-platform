@@ -9,10 +9,14 @@ import { UsersModule } from './users/users.module';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './auth/auth.module';
 import { FriendshipsModule } from './friendships/friendships.module';
+import { PostsModule } from './posts/posts.module';
+import { MediasModule } from './medias/medias.module';
+import { ReactionsModule } from './reactions/reactions.module';
+import { CommentsModule } from './comments/comments.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule],
+  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule, PostsModule, MediasModule, ReactionsModule, CommentsModule],
   controllers: [AppController],
   providers: [AppService],
 })
