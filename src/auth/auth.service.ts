@@ -8,9 +8,19 @@ import * as bcrypt from 'bcrypt';
 import { VerificationCodeType } from './entities/verification-codes.entity';
 import { SocialAccountsService } from './social_accounts.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { ProfileDto } from 'src/users/dto/profile-dto';
-import { SocialAccountDto } from './dto/social_account.dto';
+import { ProfileDto } from 'src/users/dto/profile.dto';
 import { User } from 'src/users/entities/user.entity';
+import type { StringValue } from 'ms';
+import { UserResponseDto } from 'src/users/dto/user-response.dto';
+import { plainToInstance } from 'class-transformer';
+
+const parseExpiresIn = (value?: string): number | StringValue | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  return /^\d+$/.test(value) ? Number(value) : (value as StringValue);
+};
 
 @Injectable()
 export class AuthService {
@@ -31,9 +41,12 @@ export class AuthService {
     if (type === 'access') {
       return this.jwtService.sign(payload);
     }
+
     return this.jwtService.signAsync(payload, {
       secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
-      expiresIn: this.configService.get<number>('REFRESH_TOKEN_EXPIRES_IN'),
+      expiresIn: parseExpiresIn(
+        this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN'),
+      ),
     });
   }
 
@@ -52,7 +65,7 @@ export class AuthService {
     }
 
     const hashedPassword = this.hashString(password);
-    
+
     const newUser = await this.usersService.create({
       email,
       username,
@@ -67,7 +80,9 @@ export class AuthService {
     return {
       message:
         'User registered successfully. Please check your email to verify your account.',
-      user: newUser,
+      user: plainToInstance(UserResponseDto, newUser, {
+        excludeExtraneousValues: true,
+      }),
     };
   }
 
@@ -100,11 +115,15 @@ export class AuthService {
       this.generateToken(payload, 'refresh'),
     ]);
 
-    await this.usersService.updateUser(user.id, { refresh_token: this.hashString(refresh_token) });
+    await this.usersService.updateUser(user.id, {
+      refresh_token: this.hashString(refresh_token),
+    });
 
     return {
       message: 'Login successful',
-      user,
+      user: plainToInstance(UserResponseDto, user, {
+        excludeExtraneousValues: true,
+      }),
       access_token,
       refresh_token,
     };
@@ -122,7 +141,10 @@ export class AuthService {
       throw new BadRequestException('Invalid refresh token');
     }
 
-    const isRefreshTokenValid = bcrypt.compareSync(refreshToken, user.refresh_token);
+    const isRefreshTokenValid = bcrypt.compareSync(
+      refreshToken,
+      user.refresh_token,
+    );
 
     if (!isRefreshTokenValid) {
       throw new BadRequestException('Invalid refresh token');
@@ -139,7 +161,9 @@ export class AuthService {
       this.generateToken(payload, 'refresh'),
     ]);
 
-    await this.usersService.updateUser(user.id, { refresh_token: this.hashString(new_refresh_token) });
+    await this.usersService.updateUser(user.id, {
+      refresh_token: this.hashString(new_refresh_token),
+    });
 
     return {
       access_token,
@@ -161,7 +185,10 @@ export class AuthService {
     const hashedPassword = this.hashString(newPassword);
     await this.usersService.updateUser(user.id, { password: hashedPassword });
 
-    return { message: 'Password reset successful. Please log in with your new password.' };
+    return {
+      message:
+        'Password reset successful. Please log in with your new password.',
+    };
   }
 
   async validateSocialUser(user: any) {
@@ -170,18 +197,24 @@ export class AuthService {
     if (!email) {
       throw new BadRequestException('Email is required for social login');
     }
-    
+
     const existingUser = await this.usersService.findOneByEmailRaw(email);
 
-    let newUser : User | null = null;
+    let finalUser: Pick<User, 'id' | 'email' | 'username'>;
 
     if (existingUser) {
-      if (!existingUser.socialAccounts.some(account => account.provider === provider && account.provider_user_id === providerUserId)) {
+      if (
+        !existingUser.socialAccounts.some(
+          (account) =>
+            account.provider === provider &&
+            account.provider_user_id === providerUserId,
+        )
+      ) {
         await this.socialAccountsService.create({
           provider,
           provider_user_id: providerUserId,
           user_id: existingUser.id,
-        })
+        });
       }
 
       if (!existingUser.profile?.avatar_url && avatar) {
@@ -189,32 +222,34 @@ export class AuthService {
           avatar_url: avatar,
         });
       }
+
+      finalUser = existingUser as UserResponseDto;
     } else {
       const userInfo: CreateUserDto = {
         email,
         username,
         is_verified: true,
-      }
+      };
 
       const profileInfo: ProfileDto = {
         avatar_url: avatar,
-      }
+      };
 
-      newUser = await this.usersService.create(userInfo, profileInfo);
+      const createdUser = await this.usersService.create(userInfo, profileInfo);
 
       await this.socialAccountsService.create({
         provider,
         provider_user_id: providerUserId,
-        user_id: newUser.id,
+        user_id: createdUser.id,
       });
+
+      finalUser = createdUser as UserResponseDto;
     }
 
-    const finalUser = existingUser || newUser;
-
     const payload = {
-      sub: finalUser?.id,
-      email: finalUser?.email,
-      username: finalUser?.username,
+      sub: finalUser.id,
+      email: finalUser.email,
+      username: finalUser.username,
     };
 
     const [access_token, refresh_token] = await Promise.all([
@@ -222,10 +257,14 @@ export class AuthService {
       this.generateToken(payload, 'refresh'),
     ]);
 
-    await this.usersService.updateUser(finalUser!.id, { refresh_token: this.hashString(refresh_token) });
+    await this.usersService.updateUser(finalUser.id, {
+      refresh_token: this.hashString(refresh_token),
+    });
 
     return {
-      user: finalUser,
+      user: plainToInstance(UserResponseDto, finalUser, {
+        excludeExtraneousValues: true,
+      }),
       access_token,
       refresh_token,
     };

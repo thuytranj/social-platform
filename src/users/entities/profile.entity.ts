@@ -1,6 +1,5 @@
-import { BeforeInsert, Column, Entity, OneToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import {  Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
-import { v7 as uuidv7 } from 'uuid';
 
 export enum Gender {
   MALE = 'male',

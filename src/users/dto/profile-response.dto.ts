@@ -1,24 +1,29 @@
-import { Expose } from "class-transformer";
+import { Expose, Type, Exclude } from "class-transformer";
+import { UserResponseDto } from "./user-response.dto";
 
 export class ProfileResponseDto {
   @Expose()
-  id: string;
+  id!: string;
 
   @Expose()
-  full_name: string;
+  full_name!: string;
 
   @Expose()
-  sex: string;
+  sex!: string;
 
   @Expose()
-  date_of_birth: Date;
+  date_of_birth!: Date;
 
   @Expose()
-  avatar_url: string;
+  avatar_url!: string;
 
   @Expose()
-  cover_url: string;
+  cover_url!: string;
 
   @Expose()
-  bio: string;
+  bio!: string;
+
+  @Exclude()
+  @Type(() => UserResponseDto)
+  user!: UserResponseDto;
 }

@@ -12,6 +12,7 @@ import {
 import { Profile } from './profile.entity';
 import { v7 as uuidv7 } from 'uuid';
 import { SocialAccount } from '../../auth/entities/social-accounts.entity';
+import { Friendship } from '../../friendships/entities/friendship.entity';
 
 @Entity('users')
 export class User {
@@ -51,6 +52,12 @@ export class User {
 
   @OneToMany(() => SocialAccount, (socialAccount) => socialAccount.user)
   socialAccounts: SocialAccount[];
+
+  @OneToMany(() => Friendship, (friendship) => friendship.requester)
+  requester_friendships: Friendship[];
+
+  @OneToMany(() => Friendship, (friendship) => friendship.addressee)
+  addressee_friendships: Friendship[];
 
   @BeforeInsert()
   generateId() {

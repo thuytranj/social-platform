@@ -13,6 +13,15 @@ import { VerificationCode } from './entities/verification-codes.entity';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { SocialAccount } from './entities/social-accounts.entity';
 import { SocialAccountsService } from './social_accounts.service';
+import type { StringValue } from 'ms';
+
+const parseExpiresIn = (value?: string): number | StringValue | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  return /^\d+$/.test(value) ? Number(value) : (value as StringValue);
+};
 
 @Module({
   imports: [
@@ -26,7 +35,9 @@ import { SocialAccountsService } from './social_accounts.service';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('ACCESS_TOKEN_SECRET'),
         signOptions: {
-          expiresIn: configService.get<number>('ACCESS_TOKEN_EXPIRES_IN'),
+          expiresIn: parseExpiresIn(
+            configService.get<string>('ACCESS_TOKEN_EXPIRES_IN'),
+          ),
         },
       }),
     }),
