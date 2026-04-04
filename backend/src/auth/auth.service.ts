@@ -7,11 +7,11 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { VerificationCodeType } from './entities/verification-codes.entity';
 import { SocialAccountsService } from './social_accounts.service';
-import { CreateUserDto } from 'src/users/dto/create-user.dto';
-import { ProfileDto } from 'src/users/dto/profile.dto';
-import { User } from 'src/users/entities/user.entity';
+import { CreateUserDto } from '@/users/dto/create-user.dto';
+import { ProfileDto } from '@/users/dto/profile.dto';
+import { User } from '@/users/entities/user.entity';
 import type { StringValue } from 'ms';
-import { UserResponseDto } from 'src/users/dto/user-response.dto';
+import { UserResponseDto } from '@/users/dto/user-response.dto';
 import { plainToInstance } from 'class-transformer';
 
 const parseExpiresIn = (value?: string): number | StringValue | undefined => {
