@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn, Unique } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "@/users/entities/user.entity";
 
 export enum ReactionType {
@@ -10,6 +10,11 @@ export enum ReactionType {
   ANGRY = 'angry',
 }
 
+export enum ReactionTargetType {
+  POST = 'post',
+  COMMENT = 'comment',
+}
+
 @Entity('reactions')
   @Index(['target_type', 'target_id', 'author_id'], { unique: true })
   @Index(['target_type', 'target_id'])
@@ -17,8 +22,8 @@ export class Reaction {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({type: 'enum', enum: ['post', 'comment'] })
-  target_type!: 'post' | 'comment';
+  @Column({type: 'enum', enum: ReactionTargetType })
+  target_type!: ReactionTargetType;
 
   @Column()
   @Index()

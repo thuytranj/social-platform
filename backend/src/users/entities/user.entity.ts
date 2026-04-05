@@ -18,7 +18,7 @@ import { Comment } from '@/comments/entities/comment.entity';
 import { Group } from '@/groups/entities/group.entity';
 import { GroupMember } from '@/groups/entities/group-member.entity';
 import { Feed } from '@/posts/entities/feeds.entity';
-import { Reaction } from '@/reactions/entities/react.entity';
+import { Reaction } from '@/reactions/entities/reaction.entity';
 
 @Entity('users')
 export class User {

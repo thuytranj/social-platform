@@ -5,11 +5,13 @@ import { User } from "@/users/entities/user.entity";
 export enum GroupRole {
   MEMBER = 'member',
   ADMIN = 'admin',
+  MODERATOR = 'moderator',
 }
 
 export enum GroupStatus {
   ACTIVE = 'active',
   BANNED = 'banned',
+  PENDING = 'pending',
 }
 
 @Entity('group_members')
