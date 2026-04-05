@@ -13,10 +13,11 @@ import { PostsModule } from './posts/posts.module';
 import { MediasModule } from './medias/medias.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { CommentsModule } from './comments/comments.module';
+import { GroupsModule } from './groups/groups.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule, PostsModule, MediasModule, ReactionsModule, CommentsModule],
+  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule, PostsModule, MediasModule, ReactionsModule, CommentsModule, GroupsModule],
   controllers: [AppController],
   providers: [AppService],
 })
