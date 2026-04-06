@@ -4,9 +4,10 @@ import { PostsController } from './posts.controller';
 import { Post } from './entities/post.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Feed } from './entities/feeds.entity';
+import { MediasModule } from '@/medias/medias.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Feed])],
+  imports: [TypeOrmModule.forFeature([Post, Feed]), MediasModule],
   controllers: [PostsController],
   providers: [PostsService],
 })
