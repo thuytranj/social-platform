@@ -3,7 +3,6 @@ import { Comment } from "@/comments/entities/comment.entity";
 import { CreateDateColumn, Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, JoinColumn, ManyToOne, OneToMany, Index } from "typeorm";
 import { Group } from "@/groups/entities/group.entity";
 import { Feed } from "./feeds.entity";
-import { Media } from "@/medias/entities/media.entity";
 import { PostMedia } from "@/medias/entities/post-media.entity";
 
 export enum PostPrivacy {
