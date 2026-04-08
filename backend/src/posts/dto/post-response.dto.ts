@@ -48,4 +48,12 @@ export class PostResponseDto {
   @Expose()
   @Type(() => PostMediaResponseDto)
   postMedias!: PostMediaResponseDto[];
+
+  @Expose()
+  @Type(() => PostResponseDto)
+  original_post?: PostResponseDto;
+
+  @Expose()
+  @Type(() => PostResponseDto)
+  root_post?: PostResponseDto;
 }
