@@ -19,11 +19,13 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth-guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { CommentsService } from '@/comments/comments.service';
+import { CreateCommentDto } from '@/comments/dto/create-comment.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(private readonly postsService: PostsService, private readonly commentsService: CommentsService) {}
 
   @Post()
   @UseInterceptors(
@@ -54,6 +56,24 @@ export class PostsController {
   @Post('share/:id')
   sharePost(@Req() req, @Param('id') id: string, @Body() createPostDto: CreatePostDto) {
     return this.postsService.sharePost(req.user.sub, id, createPostDto);
+  }
+
+  @Post(':id/comments')
+  createComment(
+    @Req() req,
+    @Param('id') id: string,
+    @Body() createCommentDto: CreateCommentDto,
+  ) {
+    return this.commentsService.create(req.user.sub, id, createCommentDto);
+  }
+
+  @Get(':id/comments')
+  findAllCommentsByPost(
+    @Param('id') id: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.commentsService.findAllCommentsByPost(id, page, limit);
   }
 
   @Get('feeds')

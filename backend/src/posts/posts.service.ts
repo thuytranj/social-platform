@@ -450,8 +450,6 @@ export class PostsService {
         relations: ['original_post', 'original_post.root_post'],
       });
 
-      console.log('Original Post:', orginalPost);
-
       if (!orginalPost) {
         throw new BadRequestException('Original post not found');
       }
