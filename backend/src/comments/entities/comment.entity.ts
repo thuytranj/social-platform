@@ -24,6 +24,9 @@ export class Comment {
   @Column()
   content!: string;
 
+  @Column({ default: 0 })
+  reaction_count!: number;
+
   @CreateDateColumn()
   created_at!: Date;
 

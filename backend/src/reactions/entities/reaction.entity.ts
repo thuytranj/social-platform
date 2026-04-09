@@ -16,8 +16,9 @@ export enum ReactionTargetType {
 }
 
 @Entity('reactions')
-  @Index(['target_type', 'target_id', 'author_id'], { unique: true })
-  @Index(['target_type', 'target_id'])
+@Index(['target_type', 'target_id', 'author_id'], { unique: true })
+@Index(['target_type', 'target_id'])
+
 export class Reaction {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

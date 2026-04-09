@@ -73,7 +73,17 @@ export class PostsController {
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
   ) {
-    return this.commentsService.findAllCommentsByPost(id, page, limit);
+    return this.commentsService.findRootCommentsByPost(id, page, limit);
+  }
+
+  @Get(':postId/comments/:commentId/replies')
+  findAllRepliesByComment(
+    @Param('postId') postId: string,
+    @Param('commentId') commentId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
+    return this.commentsService.findRepliesByComment(postId, commentId, page, limit);
   }
 
   @Get('feeds')

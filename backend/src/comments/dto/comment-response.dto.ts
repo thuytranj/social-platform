@@ -25,6 +25,12 @@ export class CommentResponseDto {
   author!: UserResponseDto;
 
   @Expose()
+  reaction_count!: number;
+  
+  @Expose()
+  replies_count!: number;
+
+  @Expose()
   @Type(() => CommentResponseDto)
   replies!: CommentResponseDto[];
 }

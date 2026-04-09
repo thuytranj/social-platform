@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { DataSource, Repository } from 'typeorm';
@@ -11,9 +11,17 @@ import { CommentResponseDto } from './dto/comment-response.dto';
 
 @Injectable()
 export class CommentsService {
-  constructor(@InjectRepository(Comment) private readonly commentsRepository: Repository<Comment>, private readonly dataSource: DataSource) { }
-  
-  async create(userId: string, postId: string, createCommentDto: CreateCommentDto) {
+  constructor(
+    @InjectRepository(Comment)
+    private readonly commentsRepository: Repository<Comment>,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async create(
+    userId: string,
+    postId: string,
+    createCommentDto: CreateCommentDto,
+  ) {
     return this.dataSource.transaction(async (manager) => {
       const commentRepo = manager.getRepository(Comment);
       const postRepo = manager.getRepository(Post);
@@ -29,11 +37,11 @@ export class CommentsService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-      
+
       const comment = commentRepo.create({
         content: createCommentDto.content,
         post: { id: postId },
-        author: {id: userId },
+        author: { id: userId },
       });
 
       await commentRepo.save(comment);
@@ -41,76 +49,128 @@ export class CommentsService {
       await postRepo.increment({ id: postId }, 'comment_count', 1);
 
       return comment;
-    })
+    });
   }
 
-  buildCommentTree(comments: Comment[], parentId: string | null = null) {
-    const map = new Map<string, any>();
-    const roots: any[] = [];
-
-    for (const comment of comments) {
-      map.set(comment.id, {
-        ...comment,
-        replies: [],
-      });
-    }
-
-    for (const comment of comments) {
-      const node = map.get(comment.id);
-      if (comment.parent_id) {
-        const parent = map.get(comment.parent_id);
-        if (parent) {
-          parent.replies.push(node);
-        }
-      } else {
-        roots.push(node);
-      }
-    }
-
-    const sortComments = (nodes: any[], isReply: boolean) => 
-      nodes.sort((a, b) => {
-        if (isReply) {
-          return a.created_at.getTime() - b.created_at.getTime();
-        } else {
-          return b.created_at.getTime() - a.created_at.getTime();
-        }
-      }).map(node => ({ 
-        ...node,
-        replies: sortComments(node.replies, true)
-      }));
-
-    return sortComments(roots, false) || [];
-  }
-
-  async findAllCommentsByPost(postId: string, page: number = 1, limit: number = 10) {
+  async findRootCommentsByPost(
+    postId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
     const skip = (page - 1) * limit;
 
-    const comments = await this.commentsRepository
+    const qb = await this.commentsRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.author', 'author')
+      .leftJoin(
+        (qb) =>
+          qb
+            .select('c.parent_id', 'parent_id')
+            .addSelect('COUNT(*)', 'replies_count')
+            .from(Comment, 'c')
+            .where('c.post_id = :postId', { postId })
+            .groupBy('c.parent_id'),
+        'replies',
+        'replies.parent_id = comment.id',
+      )
+      .addSelect('COALESCE(replies.replies_count, 0)', 'replies_count')
       .where('comment.post_id = :postId', { postId })
-      .skip(skip)
-      .take(limit)
+      .andWhere('comment.parent_id IS NULL')
       .orderBy('comment.created_at', 'DESC')
-      .getMany();
-    
-    const commentTree = this.buildCommentTree(comments);
+      .skip(skip)
+      .take(limit);
 
-    return commentTree.map(comment => plainToInstance(CommentResponseDto, comment, { excludeExtraneousValues: true }));
+    const { raw, entities } = await qb.getRawAndEntities();
+
+    const rawMap = new Map(raw.map((item) => [item.comment_id, item.replies_count]));
+
+    const total = await this.commentsRepository.createQueryBuilder('comment').where('comment.post_id = :postId', { postId }).andWhere('comment.parent_id IS NULL').getCount();
+
+    const data = plainToInstance(CommentResponseDto, entities.map((entity) => ({
+      ...entity,
+      replies_count: Number(rawMap.get(entity.id) || 0),
+    })), { excludeExtraneousValues: true });
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
-  async replyToComment(userId: string, commentId: string, createCommentDto: CreateCommentDto) {
+  async findRepliesByComment(
+    postId: string,
+    commentId: string,
+    page: number = 1,
+    limit: number = 10,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const qb = this.commentsRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.author', 'author')
+      .leftJoin(
+        (qb) =>
+          qb
+            .select('c.parent_id', 'parent_id')
+            .addSelect('COUNT(*)', 'replies_count')
+            .from(Comment, 'c')
+            .where('c.post_id = :postId', { postId })
+            .groupBy('c.parent_id'),
+        'replies',
+        'replies.parent_id = comment.id',
+      )
+      .addSelect('COALESCE(replies.replies_count, 0)', 'replies_count')
+      .where('comment.parent_id = :commentId', { commentId })
+      .skip(skip)
+      .take(limit)
+      .orderBy('comment.created_at', 'ASC');
+
+    const { raw, entities } = await qb.getRawAndEntities();
+
+    const rawMap = new Map(raw.map((item) => [item.comment_id, item.replies_count]));
+
+    const total = await this.commentsRepository.createQueryBuilder('comment').where('comment.parent_id = :commentId', { commentId }).getCount();
+
+    const data = plainToInstance(CommentResponseDto, entities.map((entity) => ({
+      ...entity,
+      replies_count: Number(rawMap.get(entity.id) || 0),
+    })), { excludeExtraneousValues: true });
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  async replyToComment(
+    userId: string,
+    commentId: string,
+    createCommentDto: CreateCommentDto,
+  ) {
     return this.dataSource.transaction(async (manager) => {
       const commentRepo = manager.getRepository(Comment);
       const userRepo = manager.getRepository(User);
       const postRepo = manager.getRepository(Post);
-      
+
       const user = await userRepo.findOne({ where: { id: userId } });
       if (!user) {
         throw new BadRequestException('User not found');
       }
 
-      const parentComment = await commentRepo.findOne({ where: { id: commentId }, relations: ['post'] });
+      const parentComment = await commentRepo.findOne({
+        where: { id: commentId },
+        relations: ['post'],
+      });
 
       if (!parentComment) {
         throw new BadRequestException('Parent comment not found');
@@ -133,9 +193,16 @@ export class CommentsService {
     });
   }
 
-  async update(userId: string, commentId: string, updateCommentDto: UpdateCommentDto) {
-    const comment = await this.commentsRepository.findOne({ where: { id: commentId }, relations: ['author'] });
-    
+  async update(
+    userId: string,
+    commentId: string,
+    updateCommentDto: UpdateCommentDto,
+  ) {
+    const comment = await this.commentsRepository.findOne({
+      where: { id: commentId },
+      relations: ['author'],
+    });
+
     if (!comment) {
       throw new BadRequestException('Comment not found');
     }
@@ -150,11 +217,14 @@ export class CommentsService {
     });
 
     await this.commentsRepository.save(comment);
-    return {message: 'Comment updated successfully'};
+    return { message: 'Comment updated successfully' };
   }
 
   async remove(userId: string, commentId: string) {
-    const comment = await this.commentsRepository.findOne({ where: { id: commentId }, relations: ['author'] });
+    const comment = await this.commentsRepository.findOne({
+      where: { id: commentId },
+      relations: ['author'],
+    });
 
     if (!comment) {
       throw new BadRequestException('Comment not found');
@@ -166,6 +236,6 @@ export class CommentsService {
 
     await this.commentsRepository.remove(comment);
 
-    return {message: 'Comment removed successfully'};
+    return { message: 'Comment removed successfully' };
   }
 }
