@@ -1,4 +1,4 @@
-import {  Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {  Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 export enum Gender {
@@ -25,7 +25,13 @@ export class Profile {
   avatar_url!: string;
 
   @Column({ nullable: true })
+  avatar_public_id!: string;
+
+  @Column({ nullable: true })
   cover_url!: string;
+
+  @Column({ nullable: true })
+  cover_public_id!: string;
 
   @Column({ type: 'text', nullable: true })
   bio!: string;

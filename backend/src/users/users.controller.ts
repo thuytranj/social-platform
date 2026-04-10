@@ -7,6 +7,10 @@ import {
   Query,
   Delete,
   Req,
+  UseInterceptors,
+  BadRequestException,
+  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -15,11 +19,17 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
 import { ParseUUIDPipe } from '@nestjs/common';
 import { PostsService } from '@/posts/posts.service';
+import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
+import { memoryStorage } from 'multer';
+import { FileFieldsInterceptor } from '@nestjs/platform-express/multer/interceptors/file-fields.interceptor';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private readonly postsService: PostsService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly postsService: PostsService,
+  ) {}
 
   @Get('by-username')
   findOneByUsername(@Req() req, @Query('username') username: string) {
@@ -32,7 +42,12 @@ export class UsersController {
   }
 
   @Get(':id/post')
-  findPostsByUserId(@Req() req, @Param('id', ParseUUIDPipe) id: string, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+  findPostsByUserId(
+    @Req() req,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) {
     return this.postsService.findPostsByUserId(req.user.sub, id, page, limit);
   }
 
@@ -47,8 +62,33 @@ export class UsersController {
   }
 
   @Patch('profile')
-  updateProfile(@Req() req, @Body() updateProfileDto: ProfileDto) {
-    return this.usersService.updateProfile(req.user.sub, updateProfileDto);
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: 'avatar',
+        maxCount: 1,
+      },
+      {
+        name: 'cover',
+        maxCount: 1,
+      }], {
+      storage: memoryStorage(),
+      limits: {
+        fileSize: 10 * 1024 * 1024,
+      },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return cb(new BadRequestException('Unsupported file type'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  updateProfile(@Req() req, @Body() updateProfileDto: ProfileDto, @UploadedFiles() files: { avatar?: Express.Multer.File[], cover?: Express.Multer.File[] }) {
+    const avatarFile = files.avatar?.[0];
+    const coverFile = files.cover?.[0];
+
+    return this.usersService.updateProfile(req.user.sub, updateProfileDto, avatarFile, coverFile);
   }
 
   @Patch(':id')

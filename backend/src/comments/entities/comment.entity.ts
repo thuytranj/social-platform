@@ -25,7 +25,7 @@ export class Comment {
   content!: string;
 
   @Column({ default: 0 })
-  reaction_count!: number;
+  react_count!: number;
 
   @CreateDateColumn()
   created_at!: Date;

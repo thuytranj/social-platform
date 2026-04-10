@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Friendship } from './entities/friendship.entity';
-import { Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateFriendshipDto } from './dto/creat-friendship.dto';
 import { FriendshipStatus } from './entities/friendship.entity';
@@ -10,7 +10,6 @@ import { plainToInstance } from 'class-transformer';
 import { FriendshipResponseDto } from './dto/friendship-response.dto';
 import { UserResponseDto } from '@/users/dto/user-response.dto';
 import { User } from '@/users/entities/user.entity';
-import { In } from 'typeorm';
 
 @Injectable()
 export class FriendshipsService {
@@ -19,18 +18,30 @@ export class FriendshipsService {
     private friendshipRepository: Repository<Friendship>,
     private usersService: UsersService,
     @InjectRepository(User)
-    private userRepository: Repository<User>
-
+    private userRepository: Repository<User>,
   ) {}
 
-  async create(requester_id: string, createFriendshipDto: CreateFriendshipDto) {
+  private getFriendshipRepository(manager?: EntityManager) {
+    return manager?.getRepository(Friendship) ?? this.friendshipRepository;
+  }
+
+  private getUserRepository(manager?: EntityManager) {
+    return manager?.getRepository(User) ?? this.userRepository;
+  }
+
+  async create(
+    requester_id: string,
+    createFriendshipDto: CreateFriendshipDto,
+    manager?: EntityManager,
+  ) {
     const { addressee_id } = createFriendshipDto;
+    const friendshipRepository = this.getFriendshipRepository(manager);
     const user_low_id =
       requester_id < addressee_id ? requester_id : addressee_id;
     const user_high_id =
       requester_id > addressee_id ? requester_id : addressee_id;
 
-    const existingFriendship = await this.friendshipRepository.findOne({
+    const existingFriendship = await friendshipRepository.findOne({
       where: [{ user_high_id, user_low_id }],
     });
 
@@ -45,11 +56,15 @@ export class FriendshipsService {
         );
       } else if (existingFriendship.status === 'pending') {
         if (existingFriendship.addressee_id === requester_id) {
-          await this.confirmRequest(existingFriendship.addressee_id, {
-            requester_id: existingFriendship.requester_id,
-            status: FriendshipStatus.ACCEPTED,
-          });
-          const updatedFriendship = await this.friendshipRepository.findOne({
+          await this.confirmRequest(
+            existingFriendship.addressee_id,
+            {
+              requester_id: existingFriendship.requester_id,
+              status: FriendshipStatus.ACCEPTED,
+            },
+            manager,
+          );
+          const updatedFriendship = await friendshipRepository.findOne({
             where: { id: existingFriendship.id },
           });
 
@@ -67,13 +82,16 @@ export class FriendshipsService {
         );
       }
     } else {
-      const addressee = await this.usersService.findOneByIdRaw(addressee_id);
+      const addressee = await this.usersService.findOneByIdRaw(
+        addressee_id,
+        manager,
+      );
 
       if (!addressee) {
         throw new BadRequestException('Addressee user not found');
       }
 
-      const friendship = this.friendshipRepository.create({
+      const friendship = friendshipRepository.create({
         requester_id,
         addressee_id,
         user_low_id,
@@ -83,7 +101,7 @@ export class FriendshipsService {
         addressee: { id: addressee_id },
       });
 
-      const savedFriendship = await this.friendshipRepository.save(friendship);
+      const savedFriendship = await friendshipRepository.save(friendship);
 
       return plainToInstance(FriendshipResponseDto, savedFriendship, {
         excludeExtraneousValues: true,
@@ -91,25 +109,42 @@ export class FriendshipsService {
     }
   }
 
-  findOne(id: string) {
-    return this.friendshipRepository.findOne({ where: { id } });
+  findOne(id: string, manager?: EntityManager) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    return friendshipRepository.findOne({ where: { id } });
   }
 
-  async getSentRequests(userId: string) {
-    const sentRequests = await this.friendshipRepository.find({
+  async getSentRequests(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+    const skip = (page - 1) * limit;
+
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const [sentRequests, total] = await friendshipRepository.findAndCount({
       where: { requester_id: userId, status: FriendshipStatus.PENDING },
       relations: ['addressee'],
+      skip,
+      take: limit,
     });
 
-    return sentRequests.map((request) =>
-      plainToInstance(FriendshipResponseDto, request, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return {
+      data: sentRequests.map((request) =>
+        plainToInstance(FriendshipResponseDto, request, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      page: page,
+      limit: limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  async cancelRequest(userId: string, addresseeId: string) {
-    const result = await this.friendshipRepository.delete({
+  async cancelRequest(
+    userId: string,
+    addresseeId: string,
+    manager?: EntityManager,
+  ) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const result = await friendshipRepository.delete({
       requester_id: userId,
       addressee_id: addresseeId,
       status: FriendshipStatus.PENDING,
@@ -127,32 +162,46 @@ export class FriendshipsService {
   async confirmRequest(
     userId: string,
     confirmFriendshipDto: ConfirmFriendshipDto,
+    manager?: EntityManager,
   ) {
-    const updatedFriendship = await this.friendshipRepository.update(
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    await friendshipRepository.update(
       { requester_id: confirmFriendshipDto.requester_id, addressee_id: userId },
       { status: confirmFriendshipDto.status as FriendshipStatus },
     );
 
-    return plainToInstance(Friendship, updatedFriendship, {
-      excludeExtraneousValues: true,
-    });
+    return {
+      message: `Friend request ${confirmFriendshipDto.status.toLowerCase()} successfully.`,
+    }
   }
 
-  async getReceivedRequests(userId: string) {
-    const receivedRequests = await this.friendshipRepository.find({
+  async getReceivedRequests(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const skip = (page - 1) * limit;
+    const [receivedRequests, total] = await friendshipRepository.findAndCount({
       where: { addressee_id: userId, status: FriendshipStatus.PENDING },
       relations: ['requester'],
+      skip,
+      take: limit,
     });
 
-    return receivedRequests.map((request) =>
-      plainToInstance(FriendshipResponseDto, request, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    return {
+      data: receivedRequests.map((request) =>
+        plainToInstance(FriendshipResponseDto, request, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      page: page,
+      limit: limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  async getFriends(userId: string) {
-    const friends = await this.friendshipRepository.find({
+  async getFriends(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const skip = (page - 1) * limit;
+    const [friends, total] = await friendshipRepository.findAndCount({
       where: [
         { requester_id: userId, status: FriendshipStatus.ACCEPTED },
         { addressee_id: userId, status: FriendshipStatus.ACCEPTED },
@@ -163,34 +212,47 @@ export class FriendshipsService {
         'requester.profile',
         'addressee.profile',
       ],
+      skip,
+      take: limit,
     });
 
-    return friends.map((friendship) => {
-      if (friendship.requester_id === userId) {
-        return plainToInstance(UserResponseDto, friendship.addressee, {
-          excludeExtraneousValues: true,
-        });
-      } else {
-        return plainToInstance(UserResponseDto, friendship.requester, {
-          excludeExtraneousValues: true,
-        });
-      }
-    });
+    return {
+      data: friends.map((friendship) => {
+        if (friendship.requester_id === userId) {
+          return plainToInstance(UserResponseDto, friendship.addressee, {
+            excludeExtraneousValues: true,
+          });
+        } else {
+          return plainToInstance(UserResponseDto, friendship.requester, {
+            excludeExtraneousValues: true,
+          });
+        }
+      }),
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
-  async blockUser(userId: string, blockedUserId: string) {
+  async blockUser(
+    userId: string,
+    blockedUserId: string,
+    manager?: EntityManager,
+  ) {
     if (userId === blockedUserId) {
       throw new BadRequestException('You cannot block yourself.');
     }
+    const friendshipRepository = this.getFriendshipRepository(manager);
     const user_low_id = userId < blockedUserId ? userId : blockedUserId;
     const user_high_id = userId > blockedUserId ? userId : blockedUserId;
 
-    const existingFriendship = await this.friendshipRepository.findOne({
+    const existingFriendship = await friendshipRepository.findOne({
       where: [{ user_high_id, user_low_id }],
     });
 
     if (!existingFriendship) {
-      const friendship = this.friendshipRepository.create({
+      const friendship = friendshipRepository.create({
         requester_id: userId,
         addressee_id: blockedUserId,
         user_low_id,
@@ -200,28 +262,37 @@ export class FriendshipsService {
         addressee: { id: blockedUserId },
       });
 
-      return this.friendshipRepository.save(friendship);
+      return friendshipRepository.save(friendship);
     }
 
     if (existingFriendship.status === FriendshipStatus.BLOCKED) {
       throw new BadRequestException('This user is already blocked.');
     }
 
-    return this.friendshipRepository.update(
+    return friendshipRepository.update(
       { user_high_id, user_low_id },
-      { requester_id: userId, addressee_id: blockedUserId, status: FriendshipStatus.BLOCKED },
+      {
+        requester_id: userId,
+        addressee_id: blockedUserId,
+        status: FriendshipStatus.BLOCKED,
+      },
     );
   }
 
-  async unblockUser(userId: string, unblockedUserId: string) {
+  async unblockUser(
+    userId: string,
+    unblockedUserId: string,
+    manager?: EntityManager,
+  ) {
     if (userId === unblockedUserId) {
       throw new BadRequestException('You cannot unblock yourself.');
     }
-    
+
+    const friendshipRepository = this.getFriendshipRepository(manager);
     const user_low_id = userId < unblockedUserId ? userId : unblockedUserId;
     const user_high_id = userId > unblockedUserId ? userId : unblockedUserId;
 
-    const existingFriendship = await this.friendshipRepository.findOne({
+    const existingFriendship = await friendshipRepository.findOne({
       where: [{ user_high_id, user_low_id, status: FriendshipStatus.BLOCKED }],
     });
 
@@ -230,37 +301,94 @@ export class FriendshipsService {
     }
 
     if (existingFriendship.requester_id !== userId) {
-      throw new BadRequestException('You cannot unblock this user because you are not the one who blocked this relation.');
+      throw new BadRequestException(
+        'You cannot unblock this user because you are not the one who blocked this relation.',
+      );
     }
 
-    return this.friendshipRepository.delete({ user_high_id, user_low_id });
+    return friendshipRepository.delete({ user_high_id, user_low_id });
   }
-  
-  async getBlockedUsers(userId: string) {
-    const blockedFriendships = await this.friendshipRepository.find({
-      where: [
-        { requester_id: userId, status: FriendshipStatus.BLOCKED }
-      ],
-      relations: [
-        'addressee',
-        'addressee.profile',
-      ],
+
+  async getBlockedUsers(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const [blockedFriendships, total] = await friendshipRepository.findAndCount({
+      where: [{ requester_id: userId, status: FriendshipStatus.BLOCKED }],
+      relations: ['addressee', 'addressee.profile'],
+      skip: (page - 1) * limit,
+      take: limit,
     });
 
-    return blockedFriendships.map((friendship) => {
-      return plainToInstance(UserResponseDto, friendship.addressee, {
-        excludeExtraneousValues: true,
-      });
+    return {
+      data: blockedFriendships.map((friendship) => {
+        return plainToInstance(UserResponseDto, friendship.addressee, {
+          excludeExtraneousValues: true,
+        });
+      }),
+      page: page,
+      limit: limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getMutualFriends(
+    userId: string,
+    otherUserId: string,
+    page: number = 1,
+    limit: number = 10,
+    manager?: EntityManager,
+  ) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+    const userRepository = this.getUserRepository(manager);
+    const listFriendsOfUser = await friendshipRepository
+      .createQueryBuilder('friendship')
+      .select(
+        'CASE WHEN friendship.requester_id = :userId THEN friendship.addressee_id ELSE friendship.requester_id END',
+        'friendId',
+      )
+      .where(
+        '(friendship.requester_id = :userId OR friendship.addressee_id = :userId) AND friendship.status = :status',
+        { userId, status: FriendshipStatus.ACCEPTED },
+      )
+      .getRawMany();
+
+    const query = await friendshipRepository
+      .createQueryBuilder('friendship')
+      .select(
+        'CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END',
+        'friendId',
+      )
+      .where(
+        '(friendship.requester_id = :otherUserId OR friendship.addressee_id = :otherUserId) AND friendship.status = :status',
+        { otherUserId, status: FriendshipStatus.ACCEPTED },
+      )
+      .andWhere(
+        'CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END IN (:...friendIds)',
+        { friendIds: listFriendsOfUser.map((f) => f.friendId) },
+      )
+
+    const mutualFriendIds = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getRawMany();
+
+    const total = await query.getCount();
+
+    const mutualFriends = await userRepository.find({
+      where: { id: In(mutualFriendIds.map((f) => f.friendId)) },
+      relations: ['profile'],
     });
-  } 
 
-  async getMutualFriends(userId: string, otherUserId: string) {
-    const listFriendsOfUser = await this.friendshipRepository.createQueryBuilder('friendship').select('CASE WHEN friendship.requester_id = :userId THEN friendship.addressee_id ELSE friendship.requester_id END', 'friendId').where('(friendship.requester_id = :userId OR friendship.addressee_id = :userId) AND friendship.status = :status', { userId, status: FriendshipStatus.ACCEPTED }).getRawMany();
-
-    const mutualFriendIds = await this.friendshipRepository.createQueryBuilder('friendship').select('CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END', 'friendId').where('(friendship.requester_id = :otherUserId OR friendship.addressee_id = :otherUserId) AND friendship.status = :status', { otherUserId, status: FriendshipStatus.ACCEPTED }).andWhere('CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END IN (:...friendIds)', { friendIds: listFriendsOfUser.map(f => f.friendId) }).getRawMany();
-
-    const mutualFriends = await this.userRepository.find({where: { id: In(mutualFriendIds.map(f => f.friendId)) }, relations: ['profile']});
-
-    return mutualFriends;
+    return {
+      data: mutualFriends.map((friend) => {
+        return plainToInstance(UserResponseDto, friend, {
+          excludeExtraneousValues: true,
+        });
+      }),
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

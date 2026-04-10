@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany,  PrimaryGeneratedColumn } from "typeorm";
 import { PostMedia } from "./post-media.entity";
 
 export enum MediaType {

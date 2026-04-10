@@ -6,6 +6,8 @@ import {
   UseGuards,
   Delete,
   Patch,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { FriendshipsService } from './friendships.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
@@ -41,28 +43,28 @@ export class FriendshipsController {
   }
 
   @Get('/sent-requests')
-  getSentRequests(@Req() req) {
-    return this.friendshipsService.getSentRequests(req.user.sub);
+  getSentRequests(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getSentRequests(req.user.sub, page, limit);
   }
 
   @Get('/received-requests')
-  getReceivedRequests(@Req() req) {
-    return this.friendshipsService.getReceivedRequests(req.user.sub);
+  getReceivedRequests(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getReceivedRequests(req.user.sub, page, limit);
   }
 
   @Get('/friends')
-  getFriends(@Req() req) {
-    return this.friendshipsService.getFriends(req.user.sub);
+  getFriends(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getFriends(req.user.sub, page, limit);
   }
 
   @Get('/blocked-users')
-  getBlockedUsers(@Req() req) {
-    return this.friendshipsService.getBlockedUsers(req.user.sub);
+  getBlockedUsers(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getBlockedUsers(req.user.sub, page, limit);
   }
 
   @Get('/mutual-friends')
-  getMutualFriends(@Req() req, @Body('otherUserId') otherUserId: string) {
-    return this.friendshipsService.getMutualFriends(req.user.sub, otherUserId);
+  getMutualFriends(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10, @Body('otherUserId') otherUserId: string) {
+    return this.friendshipsService.getMutualFriends(req.user.sub, otherUserId, page, limit);
   }
 
   @Patch('/block')

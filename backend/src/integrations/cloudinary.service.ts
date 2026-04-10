@@ -4,7 +4,7 @@ import cloudinary from '@/config/cloudinary.config';
 
 @Injectable()
 export class CloudinaryService {
-  async uploadFile(file: Express.Multer.File) {
+  async uploadFile(file: Express.Multer.File, folder?: string) {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
@@ -15,7 +15,7 @@ export class CloudinaryService {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: resourceType,
-          folder: 'social_platform',
+          folder: folder ? `social-platform/${folder}` : 'social-platform',
          },
         (error, result) => {
           if (error) {
@@ -31,6 +31,10 @@ export class CloudinaryService {
   }
 
   async deleteFile(publicId: string, resourceType: string) {
-    return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+    try {
+      return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+    } catch (error) {
+      throw new BadRequestException('Failed to delete file from Cloudinary');
+    }
   }
 }
