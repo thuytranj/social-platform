@@ -391,4 +391,22 @@ export class FriendshipsService {
       totalPages: Math.ceil(total / limit),
     };
   }
+
+  async removeFriend(actorId: string, userId: string, manager?: EntityManager) {
+    const friendshipRepository = this.getFriendshipRepository(manager);
+
+    const user_low_id = actorId < userId ? actorId : userId;
+    const user_high_id = actorId > userId ? actorId : userId;
+    
+    const existingFriendship = await friendshipRepository.findOne({
+      where: [{ user_high_id, user_low_id, status: FriendshipStatus.ACCEPTED }],
+    });
+
+    if (!existingFriendship) {
+      throw new BadRequestException('You are not friends with this user.');
+    }
+
+    friendshipRepository.delete({ user_high_id, user_low_id });
+    return { message: 'Unfriended successfully.' };
+  }
 }

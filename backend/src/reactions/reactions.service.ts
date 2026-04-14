@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Reaction } from './entities/reaction.entity';
+import { Reaction, ReactionType } from './entities/reaction.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateReactionDto } from './dto/create-reaction.dto';
@@ -205,5 +205,30 @@ export class ReactionsService {
 
       return { message: 'Reaction removed successfully' };
     });
+  }
+
+  async getRections(targetId: string, page: number = 1, limit: number = 10, target: ReactionTargetType, type?: ReactionType, manager?: EntityManager) {
+    const reactionRepo = this.getReactionRepository(manager);
+
+    const query = reactionRepo.createQueryBuilder('reaction').innerJoinAndSelect('reaction.author', 'author').where('reaction.target_type = :targetType', { targetType: target }).andWhere('reaction.target_id = :targetId', { targetId });
+
+    if (type) {
+      query.andWhere('reaction.type = :type', { type });
+    }
+
+    query.skip((page - 1) * limit).take(limit).orderBy('reaction.created_at', 'DESC');
+
+    const reactions = await query.getMany();
+    const total = await query.getCount();
+
+    return {
+      data: reactions.map((reaction) => plainToInstance(ReactionResponseDto, reaction, {
+        excludeExtraneousValues: true,
+      })),
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    }
   }
 }

@@ -77,4 +77,8 @@ export class FriendshipsController {
     return this.friendshipsService.unblockUser(req.user.sub, body.blockUserId);
   }
 
+  @Delete(':friendId/remove-friend')
+  removeFriend(@Req() req, @Param('friendId') friendId: string) {
+    return this.friendshipsService.removeFriend(req.user.sub, friendId);
+  }
 }

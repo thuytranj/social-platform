@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Query } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth-guard';
 import { CreateReactionDto } from '@/reactions/dto/create-reaction.dto';
 import { ReactionsService } from '@/reactions/reactions.service';
-import { ReactionTargetType } from '@/reactions/entities/reaction.entity';
+import { ReactionTargetType, ReactionType } from '@/reactions/entities/reaction.entity';
 
 @UseGuards(JwtAuthGuard)
 @Controller('comments')
@@ -14,6 +14,16 @@ export class CommentsController {
     private readonly reactionsService: ReactionsService
   ) {}
 
+  @Get(':id/reactions')
+  findAllReactionsByComment(
+    @Param('id') commentId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('type') type?: ReactionType,
+  ) {
+    return this.reactionsService.getRections(commentId, page, limit, ReactionTargetType.COMMENT, type);
+  }
+  
   @Post(':commentId/replies')
   replyToComment(
     @Req() req,

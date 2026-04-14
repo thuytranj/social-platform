@@ -20,6 +20,7 @@ import {
   ReactionTargetType,
 } from '@/reactions/entities/reaction.entity';
 import { Folder } from '@/common/constants/constants';
+import { isDefined } from 'class-validator';
 
 @Injectable()
 export class PostsService {
@@ -208,11 +209,10 @@ export class PostsService {
 
   async findAllUserFeeds(
     userId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
-    const skip = (page - 1) * limit;
     const feedRepository = this.getFeedRepository(manager);
     const postRepository = this.getPostRepository(manager);
 
@@ -221,6 +221,8 @@ export class PostsService {
       .innerJoin('feed.post', 'post')
       .leftJoin('post.root_post', 'root')
       .select('post.id', 'id')
+      .addSelect('feed.created_at', 'created_at')
+      .addSelect('feed.id', 'feed_id')
       .where('feed.user_id = :userId', { userId })
       .andWhere(this.buildPrivacyCondition('post', 'root'), {
         viewerId: userId,
@@ -230,22 +232,27 @@ export class PostsService {
         friendshipStatus: FriendshipStatus.ACCEPTED,
       })
       .orderBy('feed.created_at', 'DESC')
-      .skip(skip)
-      .take(limit);
-
-    const postIds = (await idsQb.getRawMany()).map((row) => row.id);
-
-    if (!postIds.length) {
-      return {
-        data: [],
-        meta: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0,
-        },
-      };
+      .addOrderBy('feed.id', 'DESC') 
+      .limit(limit + 1);
+    
+    if (cursor) {
+      const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
+      // console.log('Decoded cursor:', { created_at: new Date(created_at), id });
+      idsQb.andWhere('feed.created_at < :created_at OR (feed.created_at = :created_at AND feed.id < :id)', { created_at: new Date(created_at), id });
     }
+
+    const idsResult = await idsQb.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (idsResult.length > limit) {
+      const lastEntry = idsResult.pop();
+      console.log('Last entry for next cursor:', lastEntry);
+      nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(idsResult[limit-1].created_at).toISOString(), id: idsResult[limit-1].feed_id })).toString('base64');
+    }
+
+    // console.log('idsResult:', idsResult);
+
+    const postIds = idsResult.map((row) => row.id);
 
     const posts = await postRepository
       .createQueryBuilder('post')
@@ -258,22 +265,7 @@ export class PostsService {
       .leftJoinAndSelect('root.author', 'rootAuthor')
       .where('post.id IN (:...postIds)', { postIds })
       .orderBy(`array_position(ARRAY[:...postIds]::uuid[], post.id)`)
-      .setParameter('postIds', postIds)
       .getMany();
-
-    const total = await feedRepository
-      .createQueryBuilder('feed')
-      .innerJoin('feed.post', 'post')
-      .leftJoin('post.root_post', 'root')
-      .where('feed.user_id = :userId', { userId })
-      .andWhere(this.buildPrivacyCondition('post', 'root'), {
-        viewerId: userId,
-        public: PostPrivacy.PUBLIC,
-        friends_only: PostPrivacy.FRIENDS_ONLY,
-        private: PostPrivacy.PRIVATE,
-        friendshipStatus: FriendshipStatus.ACCEPTED,
-      })
-      .getCount();
 
     // Transform the posts to PostResponseDto
     const data = posts.map((post) =>
@@ -282,12 +274,7 @@ export class PostsService {
 
     return {
       data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     };
   }
 
@@ -305,8 +292,8 @@ export class PostsService {
   async findPostsByUserId(
     actorId: string,
     userId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
@@ -320,19 +307,15 @@ export class PostsService {
     if (isBlocked) {
       throw new BadRequestException('You cannot view posts of this user');
     }
-    
-    const skip = (page - 1) * limit;
+
     const postRepository = this.getPostRepository(manager);
 
+    console.log('limit:', limit+1);
     const qb = postRepository
       .createQueryBuilder('post')
-      .leftJoinAndSelect('post.postMedias', 'pm')
-      .leftJoinAndSelect('pm.media', 'media')
-      .leftJoinAndSelect('post.author', 'author')
-      .leftJoinAndSelect('post.original_post', 'originalPost')
-      .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
-      .leftJoinAndSelect('post.root_post', 'root')
-      .leftJoinAndSelect('root.author', 'rootAuthor')
+      .leftJoin('post.root_post', 'root')
+      .select('post.id', 'id')
+      .addSelect('post.created_at', 'created_at')
       .where('post.author_id = :userId', { userId })
       .andWhere(this.buildPrivacyCondition('post', 'root'), {
         viewerId: actorId,
@@ -342,11 +325,41 @@ export class PostsService {
         friendshipStatus: FriendshipStatus.ACCEPTED,
       })
       .orderBy('post.created_at', 'DESC')
-      .skip(skip)
-      .take(limit)
-      .distinct(true);
+      .addOrderBy('post.id', 'DESC')
+      .distinctOn(['post.id', 'post.created_at'])
+      .limit(limit + 1);
+    
+    if (cursor) {
+      const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
+      qb.andWhere('post.created_at < :created_at OR (post.created_at = :created_at AND post.id < :id)', { created_at: new Date(created_at), id });
+    }
 
-    const [posts, total] = await qb.getManyAndCount();
+    const qbResult = await qb.getRawMany();
+    let nextCursor: string | null = null;
+
+    console.log('Posts by user ID - qbResult:', qbResult);
+
+    if (qbResult.length > limit) {
+      const lastPost = qbResult.pop();
+      nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(qbResult[limit-1].created_at).toISOString(), id: qbResult[limit-1].id })).toString('base64');
+    }
+
+    console.log('Posts by user ID - qbResult:', qbResult);
+
+    const postIds = qbResult.map((p) => p.id);
+    
+    const posts = await postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.postMedias', 'pm')
+      .leftJoinAndSelect('pm.media', 'media')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.original_post', 'originalPost')
+      .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
+      .leftJoinAndSelect('post.root_post', 'root')
+      .leftJoinAndSelect('root.author', 'rootAuthor')
+      .where('post.id IN (:...postIds)', { postIds })
+      .orderBy(`array_position(ARRAY[:...postIds]::uuid[], post.id)`)
+      .getMany();
 
     return {
       data: posts.map((post) =>
@@ -354,44 +367,54 @@ export class PostsService {
           excludeExtraneousValues: true,
         }),
       ),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     };
   }
 
   async findPostsByGroupId(
     groupId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
-    const skip = (page - 1) * limit;
     const postRepository = this.getPostRepository(manager);
 
-    const [posts, total] = await postRepository.findAndCount({
-      where: { group_id: groupId },
-      relations: ['postMedias', 'postMedias.media', 'author'],
-      order: { created_at: 'DESC' },
-      skip,
-      take: limit,
-    });
+    // const [posts, total] = await postRepository.findAndCount({
+    //   where: { group_id: groupId },
+    //   relations: ['postMedias', 'postMedias.media', 'author'],
+    //   order: { created_at: 'DESC' },
+    //   skip,
+    //   take: limit,
+    // });
 
+    const query = postRepository.createQueryBuilder('post').leftJoinAndSelect('post.postMedias', 'pm').leftJoinAndSelect('pm.media', 'media').leftJoinAndSelect('post.author', 'author').where('post.group_id = :groupId', { groupId }).orderBy('post.created_at', 'DESC').addOrderBy('post.id', 'DESC').limit(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
+      query.andWhere('post.created_at < :created_at OR (post.created_at = :created_at AND post.id < :id)', { created_at: new Date(created_at), id });
+    }
+
+    const posts = await query.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (!posts.length) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+    
+    if (posts.length > limit) {
+      const lastPost = posts.pop();
+      nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(posts[limit-1].post_created_at).toISOString(), id: posts[limit-1].post_id })).toString('base64');
+    }
     return {
       data: posts.map((post) =>
         plainToInstance(PostResponseDto, post, {
           excludeExtraneousValues: true,
         }),
       ),
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     };
   }
 

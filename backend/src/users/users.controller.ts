@@ -45,10 +45,10 @@ export class UsersController {
   findPostsByUserId(
     @Req() req,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
+    @Query('limit') limit: number = 1,
+    @Query('cursor') cursor?: string,
   ) {
-    return this.postsService.findPostsByUserId(req.user.sub, id, page, limit);
+    return this.postsService.findPostsByUserId(req.user.sub, id, limit, cursor);
   }
 
   @Get()

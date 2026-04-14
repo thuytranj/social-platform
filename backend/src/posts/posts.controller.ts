@@ -23,7 +23,7 @@ import { CommentsService } from '@/comments/comments.service';
 import { CreateCommentDto } from '@/comments/dto/create-comment.dto';
 import { ReactionsService } from '@/reactions/reactions.service';
 import { CreateReactionDto } from '@/reactions/dto/create-reaction.dto';
-import { ReactionTargetType } from '@/reactions/entities/reaction.entity';
+import { ReactionTargetType, ReactionType } from '@/reactions/entities/reaction.entity';
 
 
 @UseGuards(JwtAuthGuard)
@@ -126,16 +126,26 @@ export class PostsController {
   @Get('feeds')
   findAllUserFeeds(
     @Req() req,
-    @Query('page') page: number = 1,
+    @Query('cursor') cursor: string,
     @Query('limit') limit: number = 10,
   ) {
-    return this.postsService.findAllUserFeeds(req.user.sub, page, limit);
+    return this.postsService.findAllUserFeeds(req.user.sub, limit, cursor);
   }
 
   // Get a single post by ID, including its details and associated media
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.postsService.findOne(id);
+  }
+
+  @Get(':postId/reactions')
+  findAllReactionsByPost(
+    @Param('postId') postId: string,
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query('type') type?: ReactionType,
+  ) {
+    return this.reactionsService.getRections(postId, page, limit, ReactionTargetType.POST, type);
   }
 
   // Update a post's content and/or media
@@ -178,10 +188,11 @@ export class PostsController {
   }
 
   @Delete(':postId/reactions')
-  removeReaction(
-    @Req() req,
-    @Param('postId') postId: string,
-  ) {
-    return this.reactionsService.remove(req.user.sub, postId, ReactionTargetType.POST);
+  removeReaction(@Req() req, @Param('postId') postId: string) {
+    return this.reactionsService.remove(
+      req.user.sub,
+      postId,
+      ReactionTargetType.POST,
+    );
   }
 }
