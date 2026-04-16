@@ -62,7 +62,9 @@ export class CommentsService {
         }
 
         if (parentComment.post.id !== postId) {
-          throw new BadRequestException('Parent comment does not belong to the same post');
+          throw new BadRequestException(
+            'Parent comment does not belong to the same post',
+          );
         }
       }
 
@@ -83,12 +85,56 @@ export class CommentsService {
 
   async findRootCommentsByPost(
     postId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
-    const skip = (page - 1) * limit;
     const commentRepo = this.getCommentRepository(manager);
+
+    const idsQb = commentRepo.createQueryBuilder('comment')
+      .select('comment.id', 'comment_id')
+      .addSelect('comment.created_at', 'created_at')
+      .where('comment.post_id = :postId', { postId })
+      .andWhere('comment.parent_id IS NULL')
+      .orderBy('comment.created_at', 'DESC')
+      .addOrderBy('comment.id', 'DESC')
+      .take(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQb.andWhere(
+        '(comment.created_at < :created_at OR (comment.created_at = :created_at AND comment.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const idsResult = await idsQb.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[idsResult.length - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.comment_id,
+        }),
+      ).toString('base64');
+    }
+
+    const commentIds = idsResult.map((item) => item.comment_id);
 
     const qb = commentRepo
       .createQueryBuilder('comment')
@@ -99,29 +145,21 @@ export class CommentsService {
             .select('c.parent_id', 'parent_id')
             .addSelect('COUNT(*)', 'replies_count')
             .from(Comment, 'c')
-            .where('c.post_id = :postId', { postId })
+            .where('c.parent_id IN (:...commentIds)', { commentIds })
             .groupBy('c.parent_id'),
         'replies',
         'replies.parent_id = comment.id',
       )
       .addSelect('COALESCE(replies.replies_count, 0)', 'replies_count')
-      .where('comment.post_id = :postId', { postId })
-      .andWhere('comment.parent_id IS NULL')
-      .orderBy('comment.created_at', 'DESC')
-      .skip(skip)
-      .take(limit);
-
+      .where('comment.id IN (:...commentIds)', { commentIds })
+      .orderBy('ARRAY_POSITION(ARRAY[:...commentIds]::uuid[], comment.id)')
+    
     const { raw, entities } = await qb.getRawAndEntities();
 
     const rawMap = new Map(
       raw.map((item) => [item.comment_id, item.replies_count]),
     );
 
-    const total = await commentRepo
-      .createQueryBuilder('comment')
-      .where('comment.post_id = :postId', { postId })
-      .andWhere('comment.parent_id IS NULL')
-      .getCount();
 
     const data = plainToInstance(
       CommentResponseDto,
@@ -134,12 +172,7 @@ export class CommentsService {
 
     return {
       data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     };
   }
 
@@ -154,12 +187,58 @@ export class CommentsService {
   async findRepliesByComment(
     postId: string,
     commentId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
-    const skip = (page - 1) * limit;
     const commentRepo = this.getCommentRepository(manager);
+
+    const idsQb = commentRepo.createQueryBuilder('comment')
+      .select('comment.id', 'comment_id')
+      .addSelect('comment.created_at', 'created_at')
+      .where('comment.post_id = :postId', { postId })
+      .andWhere('comment.parent_id = :commentId', { commentId })
+      .orderBy('comment.created_at', 'DESC')
+      .addOrderBy('comment.id', 'DESC')
+      .limit(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQb.andWhere(
+        '(comment.created_at < :created_at OR (comment.created_at = :created_at AND comment.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const idsResult = await idsQb.getRawMany();
+
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+
+    let nextCursor: string | null = null;
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[idsResult.length - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.comment_id,
+        }),
+      ).toString('base64');
+    }
+
+
+    const commentIds = idsResult.map((item) => item.comment_id);
 
     const qb = commentRepo
       .createQueryBuilder('comment')
@@ -170,27 +249,21 @@ export class CommentsService {
             .select('c.parent_id', 'parent_id')
             .addSelect('COUNT(*)', 'replies_count')
             .from(Comment, 'c')
-            .where('c.post_id = :postId', { postId })
+            .where('c.parent_id IN (:...commentIds)', { commentIds })
             .groupBy('c.parent_id'),
         'replies',
         'replies.parent_id = comment.id',
       )
       .addSelect('COALESCE(replies.replies_count, 0)', 'replies_count')
-      .where('comment.parent_id = :commentId', { commentId })
-      .skip(skip)
-      .take(limit)
-      .orderBy('comment.created_at', 'ASC');
-
-    const { raw, entities } = await qb.getRawAndEntities();
-
+      .where('comment.id IN (:...commentIds)', { commentIds })
+      .orderBy('ARRAY_POSITION(ARRAY[:...commentIds]::uuid[], comment.id)');
+    
+    const { raw, entities} = await qb.getRawAndEntities();
+      
+    
     const rawMap = new Map(
       raw.map((item) => [item.comment_id, item.replies_count]),
     );
-
-    const total = await commentRepo
-      .createQueryBuilder('comment')
-      .where('comment.parent_id = :commentId', { commentId })
-      .getCount();
 
     const data = plainToInstance(
       CommentResponseDto,
@@ -203,12 +276,7 @@ export class CommentsService {
 
     return {
       data,
-      meta: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      nextCursor,
     };
   }
 
@@ -233,7 +301,13 @@ export class CommentsService {
 
       const postId = parentComment.post.id;
 
-      const comment = this.create(userId, postId, createCommentDto, parentComment.id, manager);
+      const comment = this.create(
+        userId,
+        postId,
+        createCommentDto,
+        parentComment.id,
+        manager,
+      );
       return comment;
     });
   }

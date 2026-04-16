@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Friendship } from './entities/friendship.entity';
-import { EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateFriendshipDto } from './dto/creat-friendship.dto';
 import { FriendshipStatus } from './entities/friendship.entity';
@@ -114,16 +114,75 @@ export class FriendshipsService {
     return friendshipRepository.findOne({ where: { id } });
   }
 
-  async getSentRequests(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
-    const skip = (page - 1) * limit;
-
+  async getSentRequests(
+    userId: string,
+    limit: number = 10,
+    cursor?: string,
+    manager?: EntityManager,
+  ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
-    const [sentRequests, total] = await friendshipRepository.findAndCount({
-      where: { requester_id: userId, status: FriendshipStatus.PENDING },
-      relations: ['addressee'],
-      skip,
-      take: limit,
-    });
+    const idsQuery = friendshipRepository
+      .createQueryBuilder('friendship')
+      .select('friendship.id', 'id')
+      .addSelect('friendship.created_at', 'created_at')
+      .where('friendship.requester_id = :userId', { userId })
+      .andWhere('friendship.status = :status', {
+        status: FriendshipStatus.PENDING,
+      })
+      .orderBy('friendship.created_at', 'DESC')
+      .addOrderBy('friendship.id', 'DESC')
+      .limit(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQuery.andWhere(
+        '(friendship.created_at < :created_at OR (friendship.created_at = :created_at AND friendship.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const idsResult = await idsQuery.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      }
+    }
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.id,
+        }),
+      ).toString('base64');
+    }
+
+    const friendshipIds = idsResult.map((r) => r.id);
+
+    const sentRequests = await friendshipRepository
+      .createQueryBuilder('friendship')
+      .leftJoin('friendship.addressee', 'addressee')
+      .leftJoin('addressee.profile', 'addresseeProfile')
+      .select([
+        'friendship',
+        'addressee.id',
+        'addressee.username',
+        'addresseeProfile.avatar_url',
+      ])
+      .where('friendship.id IN (:...ids)', { ids: friendshipIds })
+      .orderBy('ARRAY_POSITION(:ids::uuid[], friendship.id)')
+      .setParameter('ids', friendshipIds)
+      .getMany();
 
     return {
       data: sentRequests.map((request) =>
@@ -131,10 +190,7 @@ export class FriendshipsService {
           excludeExtraneousValues: true,
         }),
       ),
-      page: page,
-      limit: limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      nextCursor,
     };
   }
 
@@ -172,49 +228,146 @@ export class FriendshipsService {
 
     return {
       message: `Friend request ${confirmFriendshipDto.status.toLowerCase()} successfully.`,
-    }
+    };
   }
 
-  async getReceivedRequests(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+  async getReceivedRequests(
+    userId: string,
+    limit: number = 10,
+    cursor?: string,
+    manager?: EntityManager,
+  ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
-    const skip = (page - 1) * limit;
-    const [receivedRequests, total] = await friendshipRepository.findAndCount({
-      where: { addressee_id: userId, status: FriendshipStatus.PENDING },
-      relations: ['requester'],
-      skip,
-      take: limit,
-    });
+    const idsQuery = friendshipRepository
+      .createQueryBuilder('friendship')
+      .select('friendship.id', 'id')
+      .addSelect('friendship.created_at', 'created_at')
+      .where('friendship.addressee_id = :userId', { userId })
+      .andWhere('friendship.status = :status', {
+        status: FriendshipStatus.PENDING,
+      })
+      .orderBy('friendship.created_at', 'DESC')
+      .addOrderBy('friendship.id', 'DESC')
+      .limit(limit + 1);
 
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQuery.andWhere(
+        '(friendship.created_at < :created_at OR (friendship.created_at = :created_at AND friendship.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const idsResult = await idsQuery.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      }
+    }
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.id,
+        }),
+      ).toString('base64');
+    }
+
+    const friendshipIds = idsResult.map((r) => r.id);
+    const receivedRequests = await friendshipRepository
+      .createQueryBuilder('friendship')
+      .leftJoin('friendship.requester', 'requester')
+      .leftJoin('requester.profile', 'requesterProfile')
+      .select([
+        'friendship',
+        'requester.id',
+        'requester.username',
+        'requesterProfile.avatar_url',
+      ])
+      .where('friendship.id IN (:...ids)', { ids: friendshipIds })
+      .orderBy('ARRAY_POSITION(:ids::uuid[], friendship.id)')
+      .setParameter('ids', friendshipIds)
+      .getMany();
+    
     return {
       data: receivedRequests.map((request) =>
         plainToInstance(FriendshipResponseDto, request, {
           excludeExtraneousValues: true,
         }),
       ),
-      page: page,
-      limit: limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      nextCursor,
     };
   }
 
-  async getFriends(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+  async getFriends(
+    userId: string,
+    limit: number = 10,
+    cursor?: string,
+    manager?: EntityManager,
+  ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
-    const skip = (page - 1) * limit;
-    const [friends, total] = await friendshipRepository.findAndCount({
-      where: [
-        { requester_id: userId, status: FriendshipStatus.ACCEPTED },
-        { addressee_id: userId, status: FriendshipStatus.ACCEPTED },
-      ],
-      relations: [
-        'requester',
-        'addressee',
-        'requester.profile',
-        'addressee.profile',
-      ],
-      skip,
-      take: limit,
-    });
+    const query = friendshipRepository
+      .createQueryBuilder('friendship')
+      .leftJoin('friendship.requester', 'requester')
+      .leftJoin('friendship.addressee', 'addressee')
+      .leftJoin('requester.profile', 'requesterProfile')
+      .leftJoin('addressee.profile', 'addresseeProfile')
+      .addSelect([
+        'requester.id',
+        'requester.username',
+        'requesterProfile.avatar_url',
+        'addressee.id',
+        'addressee.username',
+        'addresseeProfile.avatar_url',
+      ])
+      .where(
+        '((friendship.requester_id = :userId AND friendship.status = :status) OR (friendship.addressee_id = :userId AND friendship.status = :status))',
+        {
+          userId,
+          status: FriendshipStatus.ACCEPTED,
+        },
+      )
+      .orderBy('friendship.created_at', 'DESC')
+      .addOrderBy('friendship.id', 'DESC')
+      .take(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      query.andWhere(
+        '(friendship.created_at < :created_at OR (friendship.created_at = :created_at AND friendship.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const friends = await query.getMany();
+    let nextCursor: string | null = null;
+
+    if (friends.length > limit) {
+      friends.pop();
+      const cursorTarget = friends[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.id,
+        }),
+      ).toString('base64');
+    }
 
     return {
       data: friends.map((friendship) => {
@@ -228,10 +381,7 @@ export class FriendshipsService {
           });
         }
       }),
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      nextCursor,
     };
   }
 
@@ -309,14 +459,52 @@ export class FriendshipsService {
     return friendshipRepository.delete({ user_high_id, user_low_id });
   }
 
-  async getBlockedUsers(userId: string, page: number = 1, limit: number = 10, manager?: EntityManager) {
+  async getBlockedUsers(
+    userId: string,
+    limit: number = 10,
+    cursor?: string,
+    manager?: EntityManager,
+  ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
-    const [blockedFriendships, total] = await friendshipRepository.findAndCount({
-      where: [{ requester_id: userId, status: FriendshipStatus.BLOCKED }],
-      relations: ['addressee', 'addressee.profile'],
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const query = friendshipRepository
+      .createQueryBuilder('friendship')
+      .leftJoin('friendship.addressee', 'addressee')
+      .leftJoin('addressee.profile', 'addresseeProfile')
+      .addSelect(['addressee.id', 'addressee.username', 'addresseeProfile.avatar_url'])
+      .where('friendship.requester_id = :userId', { userId })
+      .andWhere('friendship.status = :status', {
+        status: FriendshipStatus.BLOCKED,
+      })
+      .orderBy('friendship.created_at', 'DESC')
+      .addOrderBy('friendship.id', 'DESC')
+      .take(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      query.andWhere(
+        '(friendship.created_at < :created_at OR (friendship.created_at = :created_at AND friendship.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const blockedFriendships = await query.getMany();
+    let nextCursor: string | null = null;
+
+    if (blockedFriendships.length > limit) {
+      blockedFriendships.pop();
+      const cursorTarget = blockedFriendships[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.id,
+        }),
+      ).toString('base64');
+    }
 
     return {
       data: blockedFriendships.map((friendship) => {
@@ -324,18 +512,15 @@ export class FriendshipsService {
           excludeExtraneousValues: true,
         });
       }),
-      page: page,
-      limit: limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      nextCursor,
     };
   }
 
   async getMutualFriends(
     userId: string,
     otherUserId: string,
-    page: number = 1,
     limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
     const friendshipRepository = this.getFriendshipRepository(manager);
@@ -352,7 +537,16 @@ export class FriendshipsService {
       )
       .getRawMany();
 
-    const query = await friendshipRepository
+    const friendIds = listFriendsOfUser.map((f) => f.friendId);
+
+    if (!friendIds.length) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+
+    const mutualFriendIdsQuery = friendshipRepository
       .createQueryBuilder('friendship')
       .select(
         'CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END',
@@ -364,20 +558,34 @@ export class FriendshipsService {
       )
       .andWhere(
         'CASE WHEN friendship.requester_id = :otherUserId THEN friendship.addressee_id ELSE friendship.requester_id END IN (:...friendIds)',
-        { friendIds: listFriendsOfUser.map((f) => f.friendId) },
-      )
+        { friendIds },
+      );
 
-    const mutualFriendIds = await query
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getRawMany();
+    const usersQuery = userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where(`user.id IN (${mutualFriendIdsQuery.getQuery()})`)
+      .setParameters(mutualFriendIdsQuery.getParameters())
+      .orderBy('user.id', 'ASC')
+      .take(limit + 1);
 
-    const total = await query.getCount();
+    if (cursor) {
+      const { id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      usersQuery.andWhere('user.id > :cursorId', { cursorId: id });
+    }
 
-    const mutualFriends = await userRepository.find({
-      where: { id: In(mutualFriendIds.map((f) => f.friendId)) },
-      relations: ['profile'],
-    });
+    const mutualFriends = await usersQuery.getMany();
+    let nextCursor: string | null = null;
+
+    if (mutualFriends.length > limit) {
+      mutualFriends.pop();
+      const cursorTarget = mutualFriends[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({ id: cursorTarget.id }),
+      ).toString('base64');
+    }
 
     return {
       data: mutualFriends.map((friend) => {
@@ -385,10 +593,7 @@ export class FriendshipsService {
           excludeExtraneousValues: true,
         });
       }),
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+      nextCursor,
     };
   }
 
@@ -397,7 +602,7 @@ export class FriendshipsService {
 
     const user_low_id = actorId < userId ? actorId : userId;
     const user_high_id = actorId > userId ? actorId : userId;
-    
+
     const existingFriendship = await friendshipRepository.findOne({
       where: [{ user_high_id, user_low_id, status: FriendshipStatus.ACCEPTED }],
     });

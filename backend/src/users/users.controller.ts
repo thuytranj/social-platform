@@ -7,17 +7,19 @@ import {
   Query,
   Delete,
   Req,
+  DefaultValuePipe,
+  ParseIntPipe,
   UseInterceptors,
   BadRequestException,
   UploadedFile,
   UploadedFiles,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ProfileDto } from './dto/profile.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
-import { ParseUUIDPipe } from '@nestjs/common';
 import { PostsService } from '@/posts/posts.service';
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
 import { memoryStorage } from 'multer';
@@ -32,8 +34,8 @@ export class UsersController {
   ) {}
 
   @Get('by-username')
-  findOneByUsername(@Req() req, @Query('username') username: string) {
-    return this.usersService.findOneByUsername(req.user.sub, username);
+  findUsersByName(@Req() req, @Query('username') username: string, @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number, @Query('cursor') cursor?: string) {
+    return this.usersService.findUsersByName(req.user.sub, username, limit, cursor);
   }
 
   @Get('me')
@@ -41,19 +43,19 @@ export class UsersController {
     return this.usersService.findOne(req.user.sub);
   }
 
-  @Get(':id/post')
+  @Get(':id/posts')
   findPostsByUserId(
     @Req() req,
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('limit') limit: number = 1,
+    @Query('limit') limit: number,
     @Query('cursor') cursor?: string,
   ) {
     return this.postsService.findPostsByUserId(req.user.sub, id, limit, cursor);
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number, @Query('cursor') cursor?: string) {
+    return this.usersService.findAll(limit, cursor);
   }
 
   @Get(':id')

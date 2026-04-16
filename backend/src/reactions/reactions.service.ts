@@ -207,28 +207,65 @@ export class ReactionsService {
     });
   }
 
-  async getRections(targetId: string, page: number = 1, limit: number = 10, target: ReactionTargetType, type?: ReactionType, manager?: EntityManager) {
+  async getRections(
+    targetId: string,
+    target: ReactionTargetType,
+    limit: number = 10,
+    cursor?: string,
+    type?: ReactionType,
+    manager?: EntityManager,
+  ) {
     const reactionRepo = this.getReactionRepository(manager);
 
-    const query = reactionRepo.createQueryBuilder('reaction').innerJoinAndSelect('reaction.author', 'author').where('reaction.target_type = :targetType', { targetType: target }).andWhere('reaction.target_id = :targetId', { targetId });
+    const query = reactionRepo
+      .createQueryBuilder('reaction')
+      .innerJoinAndSelect('reaction.author', 'author')
+      .where('reaction.target_type = :targetType', { targetType: target })
+      .andWhere('reaction.target_id = :targetId', { targetId });
 
     if (type) {
       query.andWhere('reaction.type = :type', { type });
     }
 
-    query.skip((page - 1) * limit).take(limit).orderBy('reaction.created_at', 'DESC');
+    query
+      .orderBy('reaction.created_at', 'DESC')
+      .addOrderBy('reaction.id', 'DESC')
+      .take(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      query.andWhere(
+        '(reaction.created_at < :created_at OR (reaction.created_at = :created_at AND reaction.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
 
     const reactions = await query.getMany();
-    const total = await query.getCount();
+    let nextCursor: string | null = null;
+
+    if (reactions.length > limit) {
+      reactions.pop();
+      const cursorTarget = reactions[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.created_at.toISOString(),
+          id: cursorTarget.id,
+        }),
+      ).toString('base64');
+    }
 
     return {
-      data: reactions.map((reaction) => plainToInstance(ReactionResponseDto, reaction, {
-        excludeExtraneousValues: true,
-      })),
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    }
+      data: reactions.map((reaction) =>
+        plainToInstance(ReactionResponseDto, reaction, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      nextCursor,
+    };
   }
 }

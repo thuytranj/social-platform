@@ -100,10 +100,10 @@ export class PostsController {
   @Get(':id/comments')
   findAllCommentsByPost(
     @Param('id') id: string,
-    @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('cursor') cursor: string,
   ) {
-    return this.commentsService.findRootCommentsByPost(id, page, limit);
+    return this.commentsService.findRootCommentsByPost(id, limit, cursor);
   }
 
   // Get all replies for a specific comment with pagination
@@ -111,14 +111,14 @@ export class PostsController {
   findAllRepliesByComment(
     @Param('postId') postId: string,
     @Param('commentId') commentId: string,
-    @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('cursor') cursor: string,
   ) {
     return this.commentsService.findRepliesByComment(
       postId,
       commentId,
-      page,
       limit,
+      cursor,
     );
   }
 
@@ -141,11 +141,17 @@ export class PostsController {
   @Get(':postId/reactions')
   findAllReactionsByPost(
     @Param('postId') postId: string,
-    @Query('page') page: number = 1,
+    @Query('cursor') cursor: string,
     @Query('limit') limit: number = 10,
     @Query('type') type?: ReactionType,
   ) {
-    return this.reactionsService.getRections(postId, page, limit, ReactionTargetType.POST, type);
+    return this.reactionsService.getRections(
+      postId,
+      ReactionTargetType.POST,
+      limit,
+      cursor,
+      type,
+    );
   }
 
   // Update a post's content and/or media

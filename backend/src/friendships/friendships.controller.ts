@@ -43,28 +43,28 @@ export class FriendshipsController {
   }
 
   @Get('/sent-requests')
-  getSentRequests(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
-    return this.friendshipsService.getSentRequests(req.user.sub, page, limit);
+  getSentRequests(@Req() req, @Query('cursor') cursor: string, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getSentRequests(req.user.sub, limit, cursor);
   }
 
   @Get('/received-requests')
-  getReceivedRequests(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
-    return this.friendshipsService.getReceivedRequests(req.user.sub, page, limit);
+  getReceivedRequests(@Req() req, @Query('cursor') cursor: string, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getReceivedRequests(req.user.sub, limit, cursor);
   }
 
   @Get('/friends')
-  getFriends(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
-    return this.friendshipsService.getFriends(req.user.sub, page, limit);
+  getFriends(@Req() req, @Query('cursor') cursor: string, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getFriends(req.user.sub, limit, cursor);
   }
 
   @Get('/blocked-users')
-  getBlockedUsers(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10) {
-    return this.friendshipsService.getBlockedUsers(req.user.sub, page, limit);
+  getBlockedUsers(@Req() req, @Query('cursor') cursor: string, @Query('limit') limit: number = 10) {
+    return this.friendshipsService.getBlockedUsers(req.user.sub, limit, cursor);
   }
 
   @Get('/mutual-friends')
-  getMutualFriends(@Req() req, @Query('page') page: number = 1, @Query('limit') limit: number = 10, @Body('otherUserId') otherUserId: string) {
-    return this.friendshipsService.getMutualFriends(req.user.sub, otherUserId, page, limit);
+  getMutualFriends(@Req() req, @Query('cursor') cursor: string, @Query('limit') limit: number = 10, @Body('otherUserId') otherUserId: string) {
+    return this.friendshipsService.getMutualFriends(req.user.sub, otherUserId, limit, cursor);
   }
 
   @Patch('/block')

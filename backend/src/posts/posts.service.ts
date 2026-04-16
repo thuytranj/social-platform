@@ -244,6 +244,13 @@ export class PostsService {
     const idsResult = await idsQb.getRawMany();
     let nextCursor: string | null = null;
 
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+
     if (idsResult.length > limit) {
       const lastEntry = idsResult.pop();
       console.log('Last entry for next cursor:', lastEntry);
@@ -310,7 +317,6 @@ export class PostsService {
 
     const postRepository = this.getPostRepository(manager);
 
-    console.log('limit:', limit+1);
     const qb = postRepository
       .createQueryBuilder('post')
       .leftJoin('post.root_post', 'root')
@@ -337,14 +343,17 @@ export class PostsService {
     const qbResult = await qb.getRawMany();
     let nextCursor: string | null = null;
 
-    console.log('Posts by user ID - qbResult:', qbResult);
+    if (qbResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
 
     if (qbResult.length > limit) {
       const lastPost = qbResult.pop();
       nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(qbResult[limit-1].created_at).toISOString(), id: qbResult[limit-1].id })).toString('base64');
     }
-
-    console.log('Posts by user ID - qbResult:', qbResult);
 
     const postIds = qbResult.map((p) => p.id);
     
@@ -378,14 +387,6 @@ export class PostsService {
     manager?: EntityManager,
   ) {
     const postRepository = this.getPostRepository(manager);
-
-    // const [posts, total] = await postRepository.findAndCount({
-    //   where: { group_id: groupId },
-    //   relations: ['postMedias', 'postMedias.media', 'author'],
-    //   order: { created_at: 'DESC' },
-    //   skip,
-    //   take: limit,
-    // });
 
     const query = postRepository.createQueryBuilder('post').leftJoinAndSelect('post.postMedias', 'pm').leftJoinAndSelect('pm.media', 'media').leftJoinAndSelect('post.author', 'author').where('post.group_id = :groupId', { groupId }).orderBy('post.created_at', 'DESC').addOrderBy('post.id', 'DESC').limit(limit + 1);
 

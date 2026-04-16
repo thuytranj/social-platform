@@ -53,8 +53,7 @@ export class UsersService {
       if (profileDto) {
         const profile = profileRepo.create([profileDto as any])[0];
         user.profile = profile;
-      }
-      else {
+      } else {
         user.profile = profileRepo.create();
       }
 
@@ -66,32 +65,135 @@ export class UsersService {
     });
   }
 
-  async findAll(manager?: EntityManager) {
+  async findAll(limit: number = 10, cursor?: string, manager?: EntityManager) {
     const userRepo = this.getUserRepository(manager);
-    const users = await userRepo.find();
-    return users.map((user) =>
-      plainToInstance(UserResponseDto, user, {
-        excludeExtraneousValues: true,
-      }),
-    );
+    const idsQuery = userRepo
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.created_at'])
+      .orderBy('user.created_at', 'DESC')
+      .addOrderBy('user.id', 'DESC')
+      .limit(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQuery.andWhere(
+        '(user.created_at < :created_at OR (user.created_at = :created_at AND user.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
+    }
+
+    const idsResult = await idsQuery.getRawMany();
+    let nextCursor: string | null = null;
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[idsResult.length - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.user_created_at.toISOString(),
+          id: cursorTarget.user_id,
+        }),
+      ).toString('base64');
+    }
+
+    const userIds = idsResult.map((user) => user.user_id);
+    const users = await userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.id IN (:...userIds)', { userIds })
+      .orderBy('ARRAY_POSITION(:userIds::uuid[], user.id)')
+      .getMany();
+
+    return {
+      data: users.map((user) =>
+        plainToInstance(UserResponseDto, user, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      nextCursor,
+    };
   }
 
-  async findOneByUsername(
+  async findUsersByName(
     userId: string,
-    username: string,
+    keyword: string,
+    limit: number = 10,
+    cursor?: string,
     manager?: EntityManager,
   ) {
     const userRepo = this.getUserRepository(manager);
-    const user = await userRepo.findOne({
-      where: { username: ILike(`%${username}%`), id: Not(userId) },
-      relations: ['profile'],
-    });
-    if (!user) {
-      throw new NotFoundException(`User with username ${username} not found`);
+    const idsQuery = userRepo
+      .createQueryBuilder('user')
+      .leftJoin('user.profile', 'profile')
+      .select([
+        'user.id',
+        'user.created_at',
+      ])
+      .where(
+        `(user.username ILIKE :keyword OR profile.full_name ILIKE :keyword)`,
+        { keyword: `%${keyword}%` },
+      )
+      .andWhere('user.id <> :userId', { userId })
+      .orderBy('user.created_at', 'DESC')
+      .addOrderBy('user.id', 'DESC')
+      .limit(limit + 1);
+
+    if (cursor) {
+      const { created_at, id } = JSON.parse(
+        Buffer.from(cursor, 'base64').toString('utf-8'),
+      );
+      idsQuery.andWhere(
+        '(user.created_at < :created_at OR (user.created_at = :created_at AND user.id < :id))',
+        {
+          created_at: new Date(created_at),
+          id,
+        },
+      );
     }
-    return plainToInstance(UserResponseDto, user, {
-      excludeExtraneousValues: true,
-    });
+
+    const idsResult = await idsQuery.getRawMany();
+    console.log('user ID:', userId);
+    console.log('IDs result:', idsResult);
+    let nextCursor: string | null = null;
+
+    if (idsResult.length === 0) {
+      return {
+        data: [],
+        nextCursor: null,
+      };
+    }
+
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const cursorTarget = idsResult[idsResult.length - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({
+          created_at: cursorTarget.user_created_at.toISOString(),
+          id: cursorTarget.user_id,
+        }),
+      ).toString('base64');
+    }
+
+    const users = await userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.id IN (:...ids)', { ids: idsResult.map((r) => r.user_id) })
+      .orderBy('ARRAY_POSITION(:ids::uuid[], user.id)')
+      .getMany();
+
+    return {
+      data: users.map((user) =>
+        plainToInstance(UserResponseDto, user, {
+          excludeExtraneousValues: true,
+        }),
+      ),
+      nextCursor,
+    };
   }
 
   async findOne(id: string, manager?: EntityManager) {
