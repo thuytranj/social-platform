@@ -20,6 +20,9 @@ export class GroupResponseDto {
   privacy!: GroupPrivacy;
 
   @Expose()
+  members_count!: number;
+
+  @Expose()
   created_at!: Date;
 
   @Expose()

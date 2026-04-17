@@ -23,6 +23,9 @@ export class Group {
   @Column({ nullable: true })
   cover_url?: string;
 
+  @Column({ nullable: true })
+  cover_public_id?: string;
+
   @Column()
   @Index()
   creator_id!: string;
@@ -36,6 +39,9 @@ export class Group {
 
   @CreateDateColumn()
   created_at!: Date;
+
+  @Column({ default: 0 })
+  members_count: number = 0;
 
   @ManyToOne(() => User, (user) => user.created_groups, { onDelete: 'SET NULL' })
   @JoinColumn({ name: 'creator_id' })
