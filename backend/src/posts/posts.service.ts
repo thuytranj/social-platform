@@ -380,45 +380,6 @@ export class PostsService {
     };
   }
 
-  async findPostsByGroupId(
-    groupId: string,
-    limit: number = 10,
-    cursor?: string,
-    manager?: EntityManager,
-  ) {
-    const postRepository = this.getPostRepository(manager);
-
-    const query = postRepository.createQueryBuilder('post').leftJoinAndSelect('post.postMedias', 'pm').leftJoinAndSelect('pm.media', 'media').leftJoinAndSelect('post.author', 'author').where('post.group_id = :groupId', { groupId }).orderBy('post.created_at', 'DESC').addOrderBy('post.id', 'DESC').limit(limit + 1);
-
-    if (cursor) {
-      const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
-      query.andWhere('post.created_at < :created_at OR (post.created_at = :created_at AND post.id < :id)', { created_at: new Date(created_at), id });
-    }
-
-    const posts = await query.getRawMany();
-    let nextCursor: string | null = null;
-
-    if (!posts.length) {
-      return {
-        data: [],
-        nextCursor: null,
-      };
-    }
-    
-    if (posts.length > limit) {
-      const lastPost = posts.pop();
-      nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(posts[limit-1].post_created_at).toISOString(), id: posts[limit-1].post_id })).toString('base64');
-    }
-    return {
-      data: posts.map((post) =>
-        plainToInstance(PostResponseDto, post, {
-          excludeExtraneousValues: true,
-        }),
-      ),
-      nextCursor,
-    };
-  }
-
   async update(
     userId: string,
     id: string,
