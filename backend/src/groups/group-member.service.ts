@@ -255,6 +255,55 @@ export class GroupMemberService {
     });
   }
 
+  async removeMember (actorId: string, userId: string, groupId: string) {
+    if (actorId === userId) {
+      throw new BadRequestException('You cannot remove yourself');
+    }
+
+    return this.dataSource.transaction(async (manager) => {
+      const groupMembersRepo = this.getGroupMemberRepository(manager);
+      const isActorOwnerOrAdmin = await groupMembersRepo.findOne({
+        where: {
+          group_id: groupId,
+          user_id: actorId,
+          role: In([GroupRole.OWNER, GroupRole.ADMIN]),
+          status: GroupMemberStatus.ACTIVE,
+        },
+      })
+
+      if (!isActorOwnerOrAdmin) {
+        throw new BadRequestException('You are not admin or owner of the group');
+      }
+
+      const targetMember = await groupMembersRepo.findOne({
+        where: {
+          group_id: groupId,
+          user_id: userId,
+          status: GroupMemberStatus.ACTIVE,
+        },
+      });
+
+      if (!targetMember) {
+        throw new BadRequestException('Target user is not a member of the group');
+      }
+
+      if (targetMember.role === GroupRole.OWNER) {
+        throw new BadRequestException('Cannot remove group owner');
+      }
+      
+      if (targetMember.role === GroupRole.ADMIN && isActorOwnerOrAdmin.role === GroupRole.ADMIN) {
+        throw new BadRequestException('Cannot remove group admin');
+      }
+
+      await groupMembersRepo.remove(targetMember);
+
+      const groupRepo = this.getGroupRepository(manager);
+      await groupRepo.decrement({ id: groupId }, 'members_count', 1);
+
+      return { message: 'Removed member successfully' };
+    })
+  }
+
   async transferOwnership(
     ownerId: string,
     groupId: string,

@@ -104,4 +104,9 @@ export class GroupsController {
   removeAdmin(@Req() req, @Param('id', ParseUUIDPipe) id: string, @Body('userId') userId: string) {
     return this.groupMemberService.removeAdmin(req.user.sub, userId, id);
   }
+
+  @Delete(':id/members/:userId')
+  removeMember(@Req() req, @Param('id', ParseUUIDPipe) id: string, @Param('userId', ParseUUIDPipe) userId: string) {
+    return this.groupMemberService.removeMember(req.user.sub, userId, id);
+  }
 }
