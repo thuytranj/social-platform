@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   CSS VARIABLES — Light & Dark theme tokens
+   ============================================================ */
+:root {
+  --bg-base:       #ffffff;
+  --bg-surface:    #f4f4f8;
+  --bg-elevated:   #ffffff;
+  --bg-overlay:    rgba(0, 0, 0, 0.5);
+
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-base:   rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.2);
+
+  --text-primary:  #0f0f14;
+  --text-secondary:#4b4868;
+  --text-tertiary: #9997b5;
+  --text-inverse:  #ffffff;
+
+  --scrollbar-thumb: rgba(0,0,0,0.2);
+  --scrollbar-track: transparent;
+}
+
+.dark {
+  --bg-base:       #0f0f14;
+  --bg-surface:    #1a1a24;
+  --bg-elevated:   #252532;
+  --bg-overlay:    rgba(0, 0, 0, 0.7);
+
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-base:   rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  --text-primary:  #f1f0ff;
+  --text-secondary:#a09cb8;
+  --text-tertiary: #6b6880;
+  --text-inverse:  #0f0f14;
+
+  --scrollbar-thumb: rgba(255,255,255,0.15);
+}
+
+/* ============================================================
+   BASE RESET & DEFAULTS
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   COMPONENT CLASSES (reusable utilities)
+   ============================================================ */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-white dark:bg-surface-50 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-dark-sm;
+  }
+
+  .card-elevated {
+    @apply bg-white dark:bg-surface-200 border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-dark;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply backdrop-blur-md bg-white/70 dark:bg-surface-50/70 border border-white/30 dark:border-white/10;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-gray-100 dark:bg-surface-300;
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.06) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  .dark .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.04) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 to-accent-500 bg-clip-text text-transparent;
+  }
+
+  /* Gradient button */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 
+           text-white font-semibold transition-all duration-200 
+           shadow-glow-sm hover:shadow-glow active:scale-95;
+  }
+
+  /* Nav item active */
+  .nav-item-active {
+    @apply text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40;
+  }
+
+  /* Input base */
+  .input-base {
+    @apply w-full rounded-xl border border-black/10 dark:border-white/10
+           bg-gray-50 dark:bg-surface-200
+           px-4 py-2.5
+           text-sm text-gray-900 dark:text-ink
+           placeholder:text-gray-400 dark:placeholder:text-ink-faint
+           focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
+           transition-all duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Online dot */
+  .online-dot {
+    @apply w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-surface-50;
+  }
+
+  /* Reaction emoji */
+  .reaction-emoji {
+    @apply text-xl leading-none transition-transform duration-150 hover:scale-125 cursor-pointer;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-black/[0.06] dark:border-white/[0.06];
+  }
+
+  /* Section heading */
+  .section-heading {
+    @apply font-display font-bold text-gray-900 dark:text-ink;
+  }
+}
+
+/* ============================================================
+   UTILITY OVERRIDES
+   ============================================================ */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .text-balance { text-wrap: balance; }
+
+  .transition-spring {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-0.5;
+  }
+
+  /* Post media grid */
+  .media-grid-2 { grid-template-columns: 1fr 1fr; }
+  .media-grid-3 { grid-template-columns: 1fr 1fr; }
+  .media-grid-3 > :first-child { grid-column: span 2; }
+
+  /* Typing animation dots */
+  .typing-dot {
+    @apply w-1.5 h-1.5 rounded-full bg-ink-muted;
+    animation: typingDot 1.4s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* ============================================================
+   REACTION PICKER POPUP
+   ============================================================ */
+.reaction-picker {
+  background: linear-gradient(135deg, #ffffff 0%, #f9f9fb 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  padding: 6px 10px;
+  display: flex;
+  gap: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+.dark .reaction-picker {
+  background: linear-gradient(135deg, #1a1a24 0%, #252532 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+   MESSAGE BUBBLE VARIANTS
+   ============================================================ */
+.bubble-sent {
+  @apply bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-2xl rounded-br-sm;
+}
+.bubble-received {
+  @apply bg-surface-200 dark:bg-surface-300 text-ink rounded-2xl rounded-bl-sm;
+}
+
+/* ============================================================
+   POST CARD HOVER
+   ============================================================ */
+.post-card {
+  @apply card transition-shadow duration-200 hover:shadow-dark;
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: fadeIn 0.25s ease-out, slideUp 0.25s ease-out;
+}
