@@ -16,12 +16,12 @@ export const Messages = () => {
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
 
   return (
-    <div className="flex h-[calc(100vh-4rem-env(safe-area-inset-bottom))] md:h-[calc(100vh-4rem)] -mx-4 md:-mx-8 -mt-6 md:-mt-8 border-t border-border-base bg-bg-base">
+    <div className="flex h-[calc(100vh-4rem-env(safe-area-inset-bottom))] md:h-[calc(100vh-4rem)] -mx-4 md:-mx-8 -mt-6 md:-mt-8 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-surface-50">
       <ConversationList activeConvId={activeConvId} onSelect={setActiveConvId} />
       {activeConvId ? (
         <ChatArea conversationId={activeConvId} onBack={() => setActiveConvId(null)} />
       ) : (
-        <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-surface-50 dark:bg-bg-base p-8 text-center border-l border-border-base">
+        <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-white dark:bg-surface-50 p-8 text-center border-l border-gray-200 dark:border-white/10">
           <div className="w-20 h-20 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mb-6">
             <Send size={40} className="text-primary-500 ml-1" />
           </div>
@@ -57,15 +57,15 @@ const ConversationList = ({ activeConvId, onSelect }: { activeConvId: string | n
   };
 
   return (
-    <div className={`w-full md:w-80 lg:w-96 flex flex-col border-r border-border-base bg-bg-base ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
-      <div className="p-4 border-b border-border-base">
+    <div className={`w-full md:w-80 lg:w-96 flex flex-col border-r border-gray-200 dark:border-white/10 bg-white dark:bg-surface-50 ${activeConvId ? 'hidden md:flex' : 'flex'}`}>
+      <div className="p-4 border-b border-gray-200 dark:border-white/10">
         <h2 className="text-xl font-display font-bold text-ink mb-4">Messages</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" size={18} />
           <input
             type="text"
             placeholder="Search messages..."
-            className="w-full bg-surface-100 dark:bg-surface-200 pl-10 pr-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+            className="w-full bg-gray-100 dark:bg-surface-200 pl-10 pr-4 py-2 rounded-xl text-sm text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           />
         </div>
       </div>
@@ -81,7 +81,7 @@ const ConversationList = ({ activeConvId, onSelect }: { activeConvId: string | n
             </div>
           ))
         ) : convs.length === 0 ? (
-          <div className="text-center p-8 text-ink-muted">No conversations yet</div>
+          <div className="text-center p-8 text-gray-600 dark:text-ink-muted">No conversations yet</div>
         ) : (
           convs.map((conv) => (
             <div
@@ -187,10 +187,10 @@ const ChatArea = ({ conversationId, onBack }: { conversationId: string, onBack: 
   };
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-surface-50 dark:bg-bg-base">
+    <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-surface-50">
       {/* Header */}
-      <div className="h-16 px-4 border-b border-border-base flex items-center gap-3 bg-bg-base/80 backdrop-blur-md z-10 shrink-0">
-        <button onClick={onBack} className="md:hidden p-2 -ml-2 rounded-full hover:bg-surface-100 text-ink">
+      <div className="h-16 px-4 border-b border-gray-200 dark:border-white/10 flex items-center gap-3 bg-white/80 dark:bg-surface-50/80 backdrop-blur-md z-10 shrink-0">
+        <button onClick={onBack} className="md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-900 dark:text-ink">
           &larr;
         </button>
         <div className="font-semibold text-ink text-lg truncate">{getConvName()}</div>
@@ -234,7 +234,7 @@ const ChatArea = ({ conversationId, onBack }: { conversationId: string, onBack: 
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-bg-base border-t border-border-base shrink-0">
+      <div className="p-4 bg-white dark:bg-surface-50 border-t border-gray-200 dark:border-white/10 shrink-0">
         <form onSubmit={handleSend} className="flex items-center gap-2 max-w-4xl mx-auto">
           <button type="button" className="p-2 text-ink-muted hover:text-primary-500 transition-colors">
             <ImageIcon size={22} />
@@ -244,7 +244,7 @@ const ChatArea = ({ conversationId, onBack }: { conversationId: string, onBack: 
             value={inputMsg}
             onChange={(e) => setInputMsg(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-surface-100 dark:bg-surface-200 border-none rounded-full px-4 py-2.5 text-[15px] focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+            className="flex-1 bg-gray-100 dark:bg-surface-200 border-none rounded-full px-4 py-2.5 text-[15px] text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           />
           <button 
             type="submit" 

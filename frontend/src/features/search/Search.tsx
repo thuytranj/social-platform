@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Search as SearchIcon,
   Users,
@@ -21,8 +21,15 @@ import { useToast } from '../../store/ToastContext';
 import { User } from '../../types';
 
 export const Search = () => {
-  const [query, setQuery] = useState('');
+  const location = useLocation();
+  const initialQuery =
+    (location.state as { query?: string } | null)?.query || '';
+  const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
 
   // Debounce search input
   useEffect(() => {
@@ -63,7 +70,7 @@ export const Search = () => {
         </h2>
 
         {debouncedQuery.length === 0 ? (
-          <div className="text-center py-20 bg-gray-100 dark:bg-surface-200 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed">
+          <div className="text-center py-20 bg-white dark:bg-surface-50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
             <SearchIcon
               size={48}
               className="mx-auto mb-4 text-gray-400 dark:text-ink-muted"
@@ -88,7 +95,7 @@ export const Search = () => {
             ))}
           </div>
         ) : users.length === 0 ? (
-          <div className="text-center py-20 bg-gray-100 dark:bg-surface-200 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed">
+          <div className="text-center py-20 bg-white dark:bg-surface-50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
             <p className="text-gray-600 dark:text-ink-muted">
               No users found matching "{debouncedQuery}"
             </p>

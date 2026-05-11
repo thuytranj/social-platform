@@ -40,7 +40,7 @@ export const Groups = () => {
             </div>
           ))
         ) : groups.length === 0 ? (
-          <div className="col-span-full text-center py-20 bg-surface-50 dark:bg-surface-200 rounded-2xl border border-border-base border-dashed">
+          <div className="col-span-full text-center py-20 bg-white dark:bg-surface-50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
             <Users size={48} className="mx-auto mb-4 text-ink-muted" />
             <h3 className="text-lg font-display font-medium text-ink mb-2">No groups yet</h3>
             <p className="text-ink-muted mb-6">Create a group or explore existing ones.</p>

@@ -1,8 +1,9 @@
+import { useEffect, useState, type FormEvent } from 'react';
 import { Search, Bell, Moon, Sun, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../../store/AuthContext';
 import { useTheme } from '../../store/ThemeContext';
 import { useNotifications } from '../../store/NotificationContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Dropdown } from '../ui/Dropdown';
 import { Avatar } from '../ui/Avatar';
 
@@ -11,10 +12,31 @@ export const Navbar = () => {
   const { theme, toggleTheme } = useTheme();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchValue, setSearchValue] = useState('');
+
+  useEffect(() => {
+    if (location.pathname !== '/search') return;
+
+    const params = new URLSearchParams(location.search);
+    setSearchValue(params.get('q') || '');
+  }, [location.pathname, location.search]);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedQuery = searchValue.trim();
+    if (trimmedQuery) {
+      navigate('/search', { state: { query: trimmedQuery } });
+      return;
+    }
+
+    navigate('/search');
   };
 
   return (
@@ -28,7 +50,7 @@ export const Navbar = () => {
 
       {/* Desktop Search */}
       <div className="hidden md:flex flex-1 max-w-md mx-auto">
-        <div className="relative w-full group">
+        <form className="relative w-full group" onSubmit={handleSearch}>
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search
               size={18}
@@ -37,10 +59,13 @@ export const Navbar = () => {
           </div>
           <input
             type="text"
+            value={searchValue}
+            onChange={(event) => setSearchValue(event.target.value)}
             className="block w-full pl-10 pr-3 py-2 rounded-full border-none bg-gray-100 dark:bg-surface-200 text-sm placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:ring-2 focus:ring-primary-500/50 transition-shadow focus:outline-none"
             placeholder="Search VibeConnect..."
+            aria-label="Search VibeConnect"
           />
-        </div>
+        </form>
       </div>
 
       {/* Right Actions */}

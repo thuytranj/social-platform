@@ -261,7 +261,7 @@ const ListSkeleton = () => (
 );
 
 const EmptyState = ({ message }: { message: string }) => (
-  <div className="text-center py-16 bg-surface-50 dark:bg-surface-200 rounded-2xl border border-border-base border-dashed">
+  <div className="text-center py-16 bg-white dark:bg-surface-50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
     <p className="text-ink-muted">{message}</p>
   </div>
 );
