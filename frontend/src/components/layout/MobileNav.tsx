@@ -12,15 +12,21 @@ export const MobileNav = () => {
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-surface-50/90 backdrop-blur-md border-t border-gray-200 dark:border-white/10 pb-safe z-50">
       <div className="flex items-center justify-around h-14">
         {NAV_ROUTES.map((route) => {
-          const Icon = Icons[route.icon as keyof typeof Icons] as React.ElementType;
-          const isActive = location.pathname === route.path || (route.path !== '/' && location.pathname.startsWith(route.path));
-          
+          const Icon = Icons[
+            route.icon as keyof typeof Icons
+          ] as React.ElementType;
+          const isActive =
+            location.pathname === route.path ||
+            (route.path !== '/' && location.pathname.startsWith(route.path));
+
           return (
             <Link
               key={route.path}
               to={route.path}
               className={`flex flex-col items-center justify-center w-full h-full relative ${
-                isActive ? 'text-primary-500' : 'text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink'
+                isActive
+                  ? 'text-primary-500'
+                  : 'text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink'
               }`}
             >
               {isActive && (
@@ -40,8 +46,14 @@ export const MobileNav = () => {
             to={`/profile/${user.id}`}
             className="flex flex-col items-center justify-center w-full h-full"
           >
-            <div className={`p-0.5 rounded-full ${location.pathname.includes('/profile') ? 'ring-2 ring-primary-500' : ''}`}>
-              <Avatar src={user.profile?.avatar_url} alt={user.username} size="sm" />
+            <div
+              className={`p-0.5 rounded-full ${location.pathname.includes('/profile') ? 'ring-2 ring-primary-500' : ''}`}
+            >
+              <Avatar
+                src={user.profile?.avatar_url}
+                alt={user.username}
+                size="sm"
+              />
             </div>
           </Link>
         )}

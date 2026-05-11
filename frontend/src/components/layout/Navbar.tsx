@@ -30,7 +30,10 @@ export const Navbar = () => {
       <div className="hidden md:flex flex-1 max-w-md mx-auto">
         <div className="relative w-full group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-gray-400 dark:text-ink-faint group-focus-within:text-primary-500 transition-colors" />
+            <Search
+              size={18}
+              className="text-gray-400 dark:text-ink-faint group-focus-within:text-primary-500 transition-colors"
+            />
           </div>
           <input
             type="text"
@@ -42,7 +45,7 @@ export const Navbar = () => {
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 md:gap-4 ml-auto">
-        <button 
+        <button
           onClick={toggleTheme}
           className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none"
           aria-label="Toggle theme"
@@ -53,23 +56,39 @@ export const Navbar = () => {
         <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none">
           <Bell size={20} />
           {unreadCount > 0 && (
-             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-surface-50 rounded-full"></span>
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-surface-50 rounded-full"></span>
           )}
         </button>
 
         {user && (
           <div className="md:hidden">
-             <Dropdown
+            <Dropdown
               align="right"
               trigger={
                 <div className="p-0.5 ml-2 cursor-pointer">
-                  <Avatar src={user.profile?.avatar_url} alt={user.username} size="sm" />
+                  <Avatar
+                    src={user.profile?.avatar_url}
+                    alt={user.username}
+                    size="sm"
+                  />
                 </div>
               }
               items={[
-                { label: 'Profile', onClick: () => navigate(`/profile/${user.id}`) },
-                { label: 'Settings', icon: <Settings size={16} />, onClick: () => navigate('/settings') },
-                { label: 'Log Out', icon: <LogOut size={16} />, onClick: handleLogout, danger: true },
+                {
+                  label: 'Profile',
+                  onClick: () => navigate(`/profile/${user.id}`),
+                },
+                {
+                  label: 'Settings',
+                  icon: <Settings size={16} />,
+                  onClick: () => navigate('/settings'),
+                },
+                {
+                  label: 'Log Out',
+                  icon: <LogOut size={16} />,
+                  onClick: handleLogout,
+                  danger: true,
+                },
               ]}
             />
           </div>

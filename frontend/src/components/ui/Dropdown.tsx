@@ -14,13 +14,20 @@ interface DropdownProps {
   align?: 'left' | 'right';
 }
 
-export const Dropdown = ({ trigger, items, align = 'right' }: DropdownProps) => {
+export const Dropdown = ({
+  trigger,
+  items,
+  align = 'right',
+}: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -60,7 +67,17 @@ export const Dropdown = ({ trigger, items, align = 'right' }: DropdownProps) => 
                   : 'text-gray-900 dark:text-ink hover:bg-gray-100 dark:hover:bg-surface-200'
               }`}
             >
-              {item.icon && <span className={item.danger ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-ink-muted'}>{item.icon}</span>}
+              {item.icon && (
+                <span
+                  className={
+                    item.danger
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-gray-500 dark:text-ink-muted'
+                  }
+                >
+                  {item.icon}
+                </span>
+              )}
               {item.label}
             </button>
           ))}

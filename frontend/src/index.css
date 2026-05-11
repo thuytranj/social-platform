@@ -8,46 +8,48 @@
    CSS VARIABLES — Light & Dark theme tokens
    ============================================================ */
 :root {
-  --bg-base:       #ffffff;
-  --bg-surface:    #f4f4f8;
-  --bg-elevated:   #ffffff;
-  --bg-overlay:    rgba(0, 0, 0, 0.5);
+  --bg-base: #ffffff;
+  --bg-surface: #f4f4f8;
+  --bg-elevated: #ffffff;
+  --bg-overlay: rgba(0, 0, 0, 0.5);
 
   --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-base:   rgba(0, 0, 0, 0.12);
+  --border-base: rgba(0, 0, 0, 0.12);
   --border-strong: rgba(0, 0, 0, 0.2);
 
-  --text-primary:  #0f0f14;
-  --text-secondary:#4b4868;
+  --text-primary: #0f0f14;
+  --text-secondary: #4b4868;
   --text-tertiary: #9997b5;
-  --text-inverse:  #ffffff;
+  --text-inverse: #ffffff;
 
-  --scrollbar-thumb: rgba(0,0,0,0.2);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
   --scrollbar-track: transparent;
 }
 
 .dark {
-  --bg-base:       #0f0f14;
-  --bg-surface:    #1a1a24;
-  --bg-elevated:   #252532;
-  --bg-overlay:    rgba(0, 0, 0, 0.7);
+  --bg-base: #0f0f14;
+  --bg-surface: #1a1a24;
+  --bg-elevated: #252532;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
 
   --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-base:   rgba(255, 255, 255, 0.1);
+  --border-base: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.18);
 
-  --text-primary:  #f1f0ff;
-  --text-secondary:#a09cb8;
+  --text-primary: #f1f0ff;
+  --text-secondary: #a09cb8;
   --text-tertiary: #6b6880;
-  --text-inverse:  #0f0f14;
+  --text-inverse: #0f0f14;
 
-  --scrollbar-thumb: rgba(255,255,255,0.15);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
 }
 
 /* ============================================================
    BASE RESET & DEFAULTS
    ============================================================ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -70,13 +72,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(124, 58, 237, 0.5);
 }
@@ -92,6 +97,7 @@ body {
    COMPONENT CLASSES (reusable utilities)
    ============================================================ */
 @layer components {
+
   /* Cards */
   .card {
     @apply bg-white dark:bg-surface-50 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-dark-sm;
@@ -110,26 +116,24 @@ body {
   .skeleton {
     @apply relative overflow-hidden bg-gray-100 dark:bg-surface-300;
   }
+
   .skeleton::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255,255,255,0.06) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
+
   .dark .skeleton::after {
-    background: linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255,255,255,0.04) 50%,
-      transparent 100%
-    );
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.04) 50%,
+        transparent 100%);
     background-size: 200% 100%;
   }
 
@@ -140,9 +144,7 @@ body {
 
   /* Gradient button */
   .btn-gradient {
-    @apply bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 
-           text-white font-semibold transition-all duration-200 
-           shadow-glow-sm hover:shadow-glow active:scale-95;
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-semibold transition-all duration-200 shadow-glow-sm hover:shadow-glow active:scale-95;
   }
 
   /* Nav item active */
@@ -152,14 +154,7 @@ body {
 
   /* Input base */
   .input-base {
-    @apply w-full rounded-xl border border-black/10 dark:border-white/10
-           bg-gray-50 dark:bg-surface-200
-           px-4 py-2.5
-           text-sm text-gray-900 dark:text-ink
-           placeholder:text-gray-400 dark:placeholder:text-ink-faint
-           focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500
-           transition-all duration-150
-           disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply w-full rounded-xl border border-black/10 dark:border-white/10 bg-gray-50 dark:bg-surface-200 px-4 py-2.5 text-sm text-gray-900 dark:text-ink placeholder:text-gray-400 dark:placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   /* Online dot */
@@ -187,10 +182,18 @@ body {
    UTILITY OVERRIDES
    ============================================================ */
 @layer utilities {
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-  .text-balance { text-wrap: balance; }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 
   .transition-spring {
     transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -201,22 +204,46 @@ body {
   }
 
   /* Post media grid */
-  .media-grid-2 { grid-template-columns: 1fr 1fr; }
-  .media-grid-3 { grid-template-columns: 1fr 1fr; }
-  .media-grid-3 > :first-child { grid-column: span 2; }
+  .media-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .media-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .media-grid-3> :first-child {
+    grid-column: span 2;
+  }
 
   /* Typing animation dots */
   .typing-dot {
     @apply w-1.5 h-1.5 rounded-full bg-ink-muted;
     animation: typingDot 1.4s infinite;
   }
-  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
 }
 
 @keyframes typingDot {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
-  30% { transform: translateY(-4px); opacity: 1; }
+
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
 }
 
 /* ============================================================
@@ -245,6 +272,7 @@ body {
 .bubble-sent {
   @apply bg-gradient-to-br from-primary-600 to-primary-700 text-white rounded-2xl rounded-br-sm;
 }
+
 .bubble-received {
   @apply bg-surface-200 dark:bg-surface-300 text-ink rounded-2xl rounded-bl-sm;
 }

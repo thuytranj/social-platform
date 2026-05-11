@@ -24,8 +24,16 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
       comment.user_reaction === type
         ? reactionsApi.removeReaction(comment.id, ReactionTargetType.COMMENT)
         : comment.user_reaction
-          ? reactionsApi.updateReaction(comment.id, ReactionTargetType.COMMENT, type)
-          : reactionsApi.addReaction(comment.id, ReactionTargetType.COMMENT, type),
+          ? reactionsApi.updateReaction(
+              comment.id,
+              ReactionTargetType.COMMENT,
+              type,
+            )
+          : reactionsApi.addReaction(
+              comment.id,
+              ReactionTargetType.COMMENT,
+              type,
+            ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.COMMENTS(postId) });
     },
@@ -39,11 +47,18 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
   return (
     <div className="flex gap-3">
       <Link to={`/profile/${comment.author_id}`}>
-        <Avatar src={comment.author.profile?.avatar_url} alt={comment.author.username} size="sm" />
+        <Avatar
+          src={comment.author.profile?.avatar_url}
+          alt={comment.author.username}
+          size="sm"
+        />
       </Link>
       <div className="flex-1">
         <div className="bg-gray-100 dark:bg-surface-200 rounded-lg p-3">
-          <Link to={`/profile/${comment.author_id}`} className="font-semibold text-gray-900 dark:text-ink hover:underline text-sm">
+          <Link
+            to={`/profile/${comment.author_id}`}
+            className="font-semibold text-gray-900 dark:text-ink hover:underline text-sm"
+          >
             {comment.author.profile?.full_name || comment.author.username}
           </Link>
           <p className="text-gray-900 dark:text-ink text-sm whitespace-pre-wrap mt-1">
@@ -52,8 +67,10 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
         </div>
         <div className="flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-ink-muted">
           <span>{formatRelativeTime(comment.created_at)}</span>
-          {comment.react_count > 0 && <span>{comment.react_count} reactions</span>}
-          
+          {comment.react_count > 0 && (
+            <span>{comment.react_count} reactions</span>
+          )}
+
           {/* Reaction Picker */}
           <div
             className="relative"
@@ -76,9 +93,17 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
             )}
             <button
               className="hover:text-primary-500 transition-colors"
-              onClick={() => handleReact(comment.user_reaction ? comment.user_reaction : ReactionType.LIKE)}
+              onClick={() =>
+                handleReact(
+                  comment.user_reaction
+                    ? comment.user_reaction
+                    : ReactionType.LIKE,
+                )
+              }
             >
-              {comment.user_reaction ? REACTION_CONFIG[comment.user_reaction].emoji : '👍'}
+              {comment.user_reaction
+                ? REACTION_CONFIG[comment.user_reaction].emoji
+                : '👍'}
             </button>
           </div>
         </div>

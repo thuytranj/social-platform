@@ -1,8 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import { CalendarDays, MapPin, Link as LinkIcon, UserPlus, MessageCircle, Edit, Check, X, Clock } from 'lucide-react';
+import {
+  CalendarDays,
+  MapPin,
+  Link as LinkIcon,
+  UserPlus,
+  MessageCircle,
+  Edit,
+  Check,
+  X,
+  Clock,
+} from 'lucide-react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { PostCard } from '../feed/PostCard';
@@ -39,15 +54,15 @@ export const Profile = () => {
         // Fetch sent requests
         const sentReqs = await friendshipsApi.getSentRequests(100);
         const sentTo = sentReqs.data.some((f: any) => f.addressee_id === id);
-        
+
         // Fetch received requests
         const recvReqs = await friendshipsApi.getReceivedRequests(100);
         const recvFrom = recvReqs.data.some((f: any) => f.requester_id === id);
-        
+
         // Fetch friends
         const friends = await friendshipsApi.getFriends(100);
         const isFriend = friends.data.some((f: any) => f.id === id);
-        
+
         if (isFriend) setFriendStatus('friends');
         else if (sentTo) setFriendStatus('sent');
         else if (recvFrom) setFriendStatus('received');
@@ -68,7 +83,8 @@ export const Profile = () => {
     status: postsStatus,
   } = useInfiniteQuery({
     queryKey: QK.USER_POSTS(id!),
-    queryFn: ({ pageParam }) => usersApi.getUserPosts(id!, 10, pageParam as string | undefined),
+    queryFn: ({ pageParam }) =>
+      usersApi.getUserPosts(id!, 10, pageParam as string | undefined),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
     enabled: !!id,
@@ -80,7 +96,8 @@ export const Profile = () => {
       setFriendStatus('sent');
       success('Friend request sent');
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to send request'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to send request'),
   });
 
   const { mutate: confirmRequest, isPending: isConfirming } = useMutation({
@@ -89,7 +106,8 @@ export const Profile = () => {
       setFriendStatus('friends');
       success('Friend request accepted');
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to accept request'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to accept request'),
   });
 
   const { mutate: cancelRequest, isPending: isCanceling } = useMutation({
@@ -98,7 +116,8 @@ export const Profile = () => {
       setFriendStatus('none');
       success('Request cancelled');
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to cancel request'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to cancel request'),
   });
 
   const { mutate: removeFriend, isPending: isRemoving } = useMutation({
@@ -107,7 +126,8 @@ export const Profile = () => {
       setFriendStatus('none');
       success('Friend removed');
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to remove friend'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to remove friend'),
   });
 
   if (inView && hasNextPage && !isFetchingNextPage) {
@@ -119,9 +139,16 @@ export const Profile = () => {
   if (isUserLoading) {
     return (
       <div className="max-w-4xl mx-auto w-full">
-        <Skeleton variant="rectangular" height={256} className="rounded-b-3xl" />
+        <Skeleton
+          variant="rectangular"
+          height={256}
+          className="rounded-b-3xl"
+        />
         <div className="px-6 -mt-16 sm:-mt-20">
-          <Skeleton variant="circular" className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-white dark:border-surface-50" />
+          <Skeleton
+            variant="circular"
+            className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-white dark:border-surface-50"
+          />
           <div className="mt-4 space-y-3">
             <Skeleton width={200} height={32} />
             <Skeleton width={150} />
@@ -133,7 +160,11 @@ export const Profile = () => {
   }
 
   if (!user) {
-    return <div className="text-center py-20 text-gray-600 dark:text-ink-muted">User not found</div>;
+    return (
+      <div className="text-center py-20 text-gray-600 dark:text-ink-muted">
+        User not found
+      </div>
+    );
   }
 
   return (
@@ -141,7 +172,11 @@ export const Profile = () => {
       {/* Cover Photo */}
       <div className="h-48 sm:h-64 bg-gray-200 dark:bg-surface-200 rounded-b-3xl overflow-hidden relative">
         {user.profile?.cover_url && (
-          <img src={user.profile.cover_url} alt="Cover" className="w-full h-full object-cover" />
+          <img
+            src={user.profile.cover_url}
+            alt="Cover"
+            className="w-full h-full object-cover"
+          />
         )}
       </div>
 
@@ -156,25 +191,36 @@ export const Profile = () => {
                 className="w-32 h-32 sm:w-40 sm:h-40 shadow-lg"
               />
             </div>
-            
+
             <div className="mb-2 sm:mb-4">
               <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-900 dark:text-ink">
                 {user.profile?.full_name || user.username}
               </h1>
-              <p className="text-gray-600 dark:text-ink-muted text-lg">@{user.username}</p>
+              <p className="text-gray-600 dark:text-ink-muted text-lg">
+                @{user.username}
+              </p>
             </div>
           </div>
 
           <div className="flex gap-2 sm:mb-4 flex-wrap">
             {isOwnProfile ? (
-              <Button onClick={() => setIsEditModalOpen(true)} variant="secondary" className="gap-2">
+              <Button
+                onClick={() => setIsEditModalOpen(true)}
+                variant="secondary"
+                className="gap-2"
+              >
                 <Edit size={18} /> Edit Profile
               </Button>
             ) : (
               <>
                 {friendStatus === 'friends' ? (
                   <>
-                    <Button variant="secondary" className="gap-2" onClick={() => removeFriend()} disabled={isRemoving}>
+                    <Button
+                      variant="secondary"
+                      className="gap-2"
+                      onClick={() => removeFriend()}
+                      disabled={isRemoving}
+                    >
                       <Check size={18} /> Friends
                     </Button>
                     <Button variant="secondary" className="gap-2">
@@ -182,21 +228,39 @@ export const Profile = () => {
                     </Button>
                   </>
                 ) : friendStatus === 'sent' ? (
-                  <Button variant="outline" className="gap-2" onClick={() => cancelRequest()} disabled={isCanceling}>
+                  <Button
+                    variant="outline"
+                    className="gap-2"
+                    onClick={() => cancelRequest()}
+                    disabled={isCanceling}
+                  >
                     <Clock size={18} /> Request Sent
                   </Button>
                 ) : friendStatus === 'received' ? (
                   <>
-                    <Button className="gap-2" onClick={() => confirmRequest()} isLoading={isConfirming}>
+                    <Button
+                      className="gap-2"
+                      onClick={() => confirmRequest()}
+                      isLoading={isConfirming}
+                    >
                       <Check size={18} /> Accept Request
                     </Button>
-                    <Button variant="outline" className="gap-2" onClick={() => cancelRequest()} disabled={isCanceling}>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => cancelRequest()}
+                      disabled={isCanceling}
+                    >
                       <X size={18} /> Decline
                     </Button>
                   </>
                 ) : (
                   <>
-                    <Button className="gap-2" onClick={() => sendRequest()} isLoading={isSendingRequest}>
+                    <Button
+                      className="gap-2"
+                      onClick={() => sendRequest()}
+                      isLoading={isSendingRequest}
+                    >
                       <UserPlus size={18} /> Add Friend
                     </Button>
                     <Button variant="secondary" className="gap-2">
@@ -211,7 +275,9 @@ export const Profile = () => {
 
         <div className="mt-6 max-w-2xl">
           {user.profile?.bio && (
-            <p className="text-gray-900 dark:text-ink whitespace-pre-wrap mb-4 text-[15px]">{user.profile.bio}</p>
+            <p className="text-gray-900 dark:text-ink whitespace-pre-wrap mb-4 text-[15px]">
+              {user.profile.bio}
+            </p>
           )}
 
           <div className="flex flex-wrap gap-y-2 gap-x-6 text-sm text-gray-600 dark:text-ink-muted">
@@ -245,7 +311,10 @@ export const Profile = () => {
       <div className="max-w-2xl mx-auto px-4 sm:px-0 space-y-6">
         {postsStatus === 'pending' ? (
           Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-surface-50 rounded-2xl p-5">
+            <div
+              key={i}
+              className="bg-white dark:bg-surface-50 rounded-2xl p-5"
+            >
               <div className="flex gap-3 mb-4">
                 <Skeleton variant="circular" width={40} height={40} />
                 <div className="flex-1 space-y-2 py-1">
@@ -275,7 +344,10 @@ export const Profile = () => {
       </div>
 
       {isOwnProfile && (
-        <EditProfileModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+        <EditProfileModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+        />
       )}
     </div>
   );

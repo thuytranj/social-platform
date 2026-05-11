@@ -15,7 +15,11 @@ interface SharePostModalProps {
   onClose: () => void;
 }
 
-export const SharePostModal = ({ post, isOpen, onClose }: SharePostModalProps) => {
+export const SharePostModal = ({
+  post,
+  isOpen,
+  onClose,
+}: SharePostModalProps) => {
   const { user } = useAuth();
   const { success, error } = useToast();
   const queryClient = useQueryClient();
@@ -33,7 +37,8 @@ export const SharePostModal = ({ post, isOpen, onClose }: SharePostModalProps) =
       onClose();
       queryClient.invalidateQueries({ queryKey: QK.FEEDS });
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to share post'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to share post'),
   });
 
   const handleShare = () => {
@@ -55,10 +60,14 @@ export const SharePostModal = ({ post, isOpen, onClose }: SharePostModalProps) =
               <p className="font-semibold text-gray-900 dark:text-ink">
                 {post.author.profile?.full_name || post.author.username}
               </p>
-              <p className="text-gray-600 dark:text-ink-muted text-xs">@{post.author.username}</p>
+              <p className="text-gray-600 dark:text-ink-muted text-xs">
+                @{post.author.username}
+              </p>
             </div>
           </div>
-          <p className="text-gray-900 dark:text-ink text-sm whitespace-pre-wrap">{post.content}</p>
+          <p className="text-gray-900 dark:text-ink text-sm whitespace-pre-wrap">
+            {post.content}
+          </p>
         </div>
 
         {/* Share Text Input */}

@@ -36,7 +36,8 @@ export const CommentSection = ({ postId, onClose }: CommentSectionProps) => {
       queryClient.invalidateQueries({ queryKey: QK.POST_COMMENTS(postId) });
       queryClient.invalidateQueries({ queryKey: QK.FEEDS });
     },
-    onError: (err: any) => error(err.response?.data?.message || 'Failed to post comment'),
+    onError: (err: any) =>
+      error(err.response?.data?.message || 'Failed to post comment'),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,8 +74,15 @@ export const CommentSection = ({ postId, onClose }: CommentSectionProps) => {
 
       {/* Comment Input */}
       {user && (
-        <form onSubmit={handleSubmit} className="flex gap-3 pt-4 border-t border-gray-200 dark:border-white/10">
-          <Avatar src={user.profile?.avatar_url} alt={user.username} size="sm" />
+        <form
+          onSubmit={handleSubmit}
+          className="flex gap-3 pt-4 border-t border-gray-200 dark:border-white/10"
+        >
+          <Avatar
+            src={user.profile?.avatar_url}
+            alt={user.username}
+            size="sm"
+          />
           <div className="flex-1 flex gap-2">
             <input
               value={commentText}

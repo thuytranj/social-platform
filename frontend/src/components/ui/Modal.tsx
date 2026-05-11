@@ -10,7 +10,13 @@ interface ModalProps {
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
 }
 
-export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = 'md',
+}: ModalProps) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -36,19 +42,23 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Modal panel */}
-      <div 
+      <div
         className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg dark:shadow-2xl animate-scale-in flex flex-col max-h-[calc(100vh-2rem)]`}
       >
         {/* Header */}
         {(title || !!onClose) && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/10 shrink-0">
-            {title && <h3 className="text-lg font-display font-semibold text-gray-900 dark:text-ink">{title}</h3>}
+            {title && (
+              <h3 className="text-lg font-display font-semibold text-gray-900 dark:text-ink">
+                {title}
+              </h3>
+            )}
             <button
               onClick={onClose}
               className="ml-auto text-gray-500 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-surface-200"
@@ -57,13 +67,11 @@ export const Modal = ({ isOpen, onClose, title, children, maxWidth = 'md' }: Mod
             </button>
           </div>
         )}
-        
+
         {/* Body */}
-        <div className="p-6 overflow-y-auto">
-          {children}
-        </div>
+        <div className="p-6 overflow-y-auto">{children}</div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

@@ -10,18 +10,14 @@ import { Skeleton } from '../../components/ui/Skeleton';
 export const Feed = () => {
   const { ref, inView } = useInView();
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status,
-  } = useInfiniteQuery({
-    queryKey: QK.FEEDS,
-    queryFn: ({ pageParam }) => postsApi.getFeed(10, pageParam as string | undefined),
-    initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
+    useInfiniteQuery({
+      queryKey: QK.FEEDS,
+      queryFn: ({ pageParam }) =>
+        postsApi.getFeed(10, pageParam as string | undefined),
+      initialPageParam: undefined as string | undefined,
+      getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    });
 
   // Fetch next page when bottom element comes into view
   if (inView && hasNextPage && !isFetchingNextPage) {
@@ -38,7 +34,10 @@ export const Feed = () => {
         {status === 'pending' ? (
           // Loading skeletons
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-surface-50 rounded-2xl p-5">
+            <div
+              key={i}
+              className="bg-white dark:bg-surface-50 rounded-2xl p-5"
+            >
               <div className="flex gap-3 mb-4">
                 <Skeleton variant="circular" width={40} height={40} />
                 <div className="flex-1 space-y-2 py-1">
@@ -59,15 +58,19 @@ export const Feed = () => {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-20 bg-gray-100 dark:bg-surface-200 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed">
-            <h3 className="text-lg font-display font-medium text-gray-900 dark:text-ink mb-2">No posts yet</h3>
-            <p className="text-gray-600 dark:text-ink-muted">Find some friends to follow or create a post yourself!</p>
+            <h3 className="text-lg font-display font-medium text-gray-900 dark:text-ink mb-2">
+              No posts yet
+            </h3>
+            <p className="text-gray-600 dark:text-ink-muted">
+              Find some friends to follow or create a post yourself!
+            </p>
           </div>
         ) : (
           <>
             {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
-            
+
             {/* Intersection observer target */}
             <div ref={ref} className="h-10 flex items-center justify-center">
               {isFetchingNextPage && (
