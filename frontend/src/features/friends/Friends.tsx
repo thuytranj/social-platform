@@ -10,7 +10,9 @@ import { useToast } from '../../store/ToastContext';
 import { QK } from '../../constants';
 
 export const Friends = () => {
-  const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'sent' | 'blocked'>('friends');
+  const [activeTab, setActiveTab] = useState<
+    'friends' | 'requests' | 'sent' | 'blocked'
+  >('friends');
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -53,7 +55,7 @@ const FriendsList = () => {
     queryKey: QK.FRIENDS,
     queryFn: () => friendshipsApi.getFriends(50),
   });
-  
+
   const queryClient = useQueryClient();
   const { success } = useToast();
 
@@ -62,11 +64,11 @@ const FriendsList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.FRIENDS });
       success('Friend removed');
-    }
+    },
   });
 
   if (isLoading) return <ListSkeleton />;
-  
+
   const friends = data?.data || [];
 
   if (friends.length === 0) {
@@ -76,9 +78,16 @@ const FriendsList = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {friends.map((user) => (
-        <div key={user.id} className="card p-4 flex items-center justify-between">
+        <div
+          key={user.id}
+          className="card p-4 flex items-center justify-between"
+        >
           <Link to={`/profile/${user.id}`} className="flex items-center gap-3">
-            <Avatar src={user.profile?.avatar_url} alt={user.username} size="lg" />
+            <Avatar
+              src={user.profile?.avatar_url}
+              alt={user.username}
+              size="lg"
+            />
             <div>
               <p className="font-semibold text-ink hover:underline">
                 {user.profile?.full_name || user.username}
@@ -86,7 +95,11 @@ const FriendsList = () => {
               <p className="text-sm text-ink-muted">@{user.username}</p>
             </div>
           </Link>
-          <Button variant="outline" size="sm" onClick={() => removeFriend(user.id)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => removeFriend(user.id)}
+          >
             <UserX size={16} className="mr-2" /> Remove
           </Button>
         </div>
@@ -105,23 +118,24 @@ const ReceivedRequests = () => {
   const { success } = useToast();
 
   const { mutate: acceptRequest } = useMutation({
-    mutationFn: (requesterId: string) => friendshipsApi.confirmRequest(requesterId),
+    mutationFn: (requesterId: string) =>
+      friendshipsApi.confirmRequest(requesterId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.RECEIVED_REQUESTS });
       queryClient.invalidateQueries({ queryKey: QK.FRIENDS });
       success('Friend request accepted');
-    }
+    },
   });
 
   const { mutate: rejectRequest } = useMutation({
     mutationFn: friendshipsApi.cancelRequest, // Can use cancelRequest for rejecting too if backend supports it
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.RECEIVED_REQUESTS });
-    }
+    },
   });
 
   if (isLoading) return <ListSkeleton />;
-  
+
   const requests = data?.data || [];
 
   if (requests.length === 0) {
@@ -131,9 +145,19 @@ const ReceivedRequests = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {requests.map((req) => (
-        <div key={req.id} className="card p-4 flex items-center justify-between">
-          <Link to={`/profile/${req.requester!.id}`} className="flex items-center gap-3">
-            <Avatar src={req.requester!.profile?.avatar_url} alt={req.requester!.username} size="lg" />
+        <div
+          key={req.id}
+          className="card p-4 flex items-center justify-between"
+        >
+          <Link
+            to={`/profile/${req.requester!.id}`}
+            className="flex items-center gap-3"
+          >
+            <Avatar
+              src={req.requester!.profile?.avatar_url}
+              alt={req.requester!.username}
+              size="lg"
+            />
             <div>
               <p className="font-semibold text-ink hover:underline">
                 {req.requester!.profile?.full_name || req.requester!.username}
@@ -144,7 +168,11 @@ const ReceivedRequests = () => {
             <Button size="sm" onClick={() => acceptRequest(req.requester!.id)}>
               Accept
             </Button>
-            <Button variant="outline" size="sm" onClick={() => rejectRequest(req.requester!.id)}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => rejectRequest(req.requester!.id)}
+            >
               Decline
             </Button>
           </div>
@@ -168,11 +196,11 @@ const SentRequests = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.SENT_REQUESTS });
       success('Friend request cancelled');
-    }
+    },
   });
 
   if (isLoading) return <ListSkeleton />;
-  
+
   const requests = data?.data || [];
 
   if (requests.length === 0) {
@@ -182,16 +210,30 @@ const SentRequests = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {requests.map((req) => (
-        <div key={req.id} className="card p-4 flex items-center justify-between">
-          <Link to={`/profile/${req.addressee!.id}`} className="flex items-center gap-3">
-            <Avatar src={req.addressee!.profile?.avatar_url} alt={req.addressee!.username} size="lg" />
+        <div
+          key={req.id}
+          className="card p-4 flex items-center justify-between"
+        >
+          <Link
+            to={`/profile/${req.addressee!.id}`}
+            className="flex items-center gap-3"
+          >
+            <Avatar
+              src={req.addressee!.profile?.avatar_url}
+              alt={req.addressee!.username}
+              size="lg"
+            />
             <div>
               <p className="font-semibold text-ink hover:underline">
                 {req.addressee!.profile?.full_name || req.addressee!.username}
               </p>
             </div>
           </Link>
-          <Button variant="outline" size="sm" onClick={() => cancelRequest(req.addressee!.id)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => cancelRequest(req.addressee!.id)}
+          >
             <Clock size={16} className="mr-2" /> Cancel
           </Button>
         </div>
@@ -214,11 +256,11 @@ const BlockedUsers = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QK.BLOCKED_USERS });
       success('User unblocked');
-    }
+    },
   });
 
   if (isLoading) return <ListSkeleton />;
-  
+
   const users = data?.data || [];
 
   if (users.length === 0) {
@@ -228,16 +270,27 @@ const BlockedUsers = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {users.map((user) => (
-        <div key={user.id} className="card p-4 flex items-center justify-between opacity-75">
+        <div
+          key={user.id}
+          className="card p-4 flex items-center justify-between opacity-75"
+        >
           <div className="flex items-center gap-3">
-            <Avatar src={user.profile?.avatar_url} alt={user.username} size="lg" />
+            <Avatar
+              src={user.profile?.avatar_url}
+              alt={user.username}
+              size="lg"
+            />
             <div>
               <p className="font-semibold text-ink">
                 {user.profile?.full_name || user.username}
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => unblockUser(user.id)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => unblockUser(user.id)}
+          >
             <Ban size={16} className="mr-2" /> Unblock
           </Button>
         </div>

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatRelativeTime } from '../../utils/date';
 import { REACTION_CONFIG } from '../../constants';
 import { Avatar } from '../../components/ui/Avatar';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Comment, ReactionType, ReactionTargetType } from '../../types';
 import { reactionsApi } from '../../api/reactions.api';
 import { QK } from '../../constants';
@@ -18,6 +18,34 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const reactionCloseTimer = useRef<number | null>(null);
+
+  const openReactionPicker = () => {
+    if (reactionCloseTimer.current) {
+      window.clearTimeout(reactionCloseTimer.current);
+      reactionCloseTimer.current = null;
+    }
+
+    setShowReactionPicker(true);
+  };
+
+  const closeReactionPicker = () => {
+    if (reactionCloseTimer.current) {
+      window.clearTimeout(reactionCloseTimer.current);
+    }
+
+    reactionCloseTimer.current = window.setTimeout(() => {
+      setShowReactionPicker(false);
+    }, 140);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (reactionCloseTimer.current) {
+        window.clearTimeout(reactionCloseTimer.current);
+      }
+    };
+  }, []);
 
   const reactMutation = useMutation({
     mutationFn: (type: ReactionType) =>
@@ -35,7 +63,7 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
               type,
             ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QK.COMMENTS(postId) });
+      queryClient.invalidateQueries({ queryKey: QK.POST_COMMENTS(postId) });
     },
   });
 
@@ -54,7 +82,7 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
         />
       </Link>
       <div className="flex-1">
-        <div className="bg-gray-100 dark:bg-surface-200 rounded-lg p-3">
+        <div className="bg-gray-50 dark:bg-surface-200 rounded-2xl p-3 border border-gray-200 dark:border-white/10">
           <Link
             to={`/profile/${comment.author_id}`}
             className="font-semibold text-gray-900 dark:text-ink hover:underline text-sm"
@@ -74,11 +102,16 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
           {/* Reaction Picker */}
           <div
             className="relative"
-            onMouseEnter={() => setShowReactionPicker(true)}
-            onMouseLeave={() => setShowReactionPicker(false)}
+            onMouseEnter={openReactionPicker}
+            onMouseLeave={closeReactionPicker}
           >
             {showReactionPicker && (
-              <div className="absolute bottom-full left-0 mb-2 reaction-picker animate-slide-up z-10">
+              <div
+                className="absolute bottom-full left-0 mb-2 pt-2 z-10"
+                onMouseEnter={openReactionPicker}
+                onMouseLeave={closeReactionPicker}
+              >
+                <div className="reaction-picker animate-slide-up">
                 {Object.entries(REACTION_CONFIG).map(([type, config]) => (
                   <button
                     key={type}
@@ -89,6 +122,7 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
                     {config.emoji}
                   </button>
                 ))}
+                </div>
               </div>
             )}
             <button

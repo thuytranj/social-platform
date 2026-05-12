@@ -197,25 +197,24 @@ frontend/
 
 ## UI/UX Direction
 
-**Design Language**: Dark-first, glassmorphism accents, vibrant purple-indigo gradient primary palette
-- Primary: `#7C3AED` → `#6D28D9` (violet/indigo)  
-- Accent: `#06B6D4` (cyan for online indicators, links)
-- Surface: `#0F0F14` → `#1A1A24` → `#252532` (layered dark surfaces)
-- Success: `#10B981`, Warning: `#F59E0B`, Error: `#EF4444`
-- White text on dark, soft gray subtitles
+**Design Language**: Light-first, airy social dashboard with soft gray surfaces, rounded cards, and restrained blue-violet accents. Dark mode should remain supported through paired `dark:` classes, but the default visual tone should feel clean and bright.
+- Primary: soft blue-violet accents for navigation, buttons, and active states
+- Accent: muted cyan/blue for focus, search, and status indicators
+- Surface: white, cool gray-50, and gray-100 with subtle borders and soft shadows
+- Text: deep gray for primary copy, slate-gray for secondary copy, muted gray for placeholders
+- Shadows: small, diffuse shadows rather than heavy elevation
 
-**Typography**: `Inter` (body) + `Plus Jakarta Sans` (headings) from Google Fonts
+**Typography**: `Inter` (body) + `Plus Jakarta Sans` (headings) from Google Fonts, with slightly larger headings and medium-weight labels for a polished dashboard feel
 
 **Key UI Patterns**:
-- Left sidebar navigation (desktop) — sticky, icon+label
-- Top navbar — search, notifications, user avatar
-- Center feed — max-width 680px, infinite scroll
+- Left sidebar navigation (desktop) — sticky, icon+label, soft active pill
+- Top navbar — rounded search field, notifications, user avatar menu, logout action
+- Center feed — max-width 680px, generous card spacing, soft shadows
 - Right panel — suggestions, group recommendations
 - Mobile — bottom navigation bar
-- Story-like avatar ring for active users
-- Reaction emoji picker (hover → popup)
-- Post card with image gallery, reaction bar, comment preview
-- Chat panel — fixed right side or full page route
+- Reaction emoji picker — hover popup with a small hover buffer so emojis stay selectable
+- Post card — white card, rounded-3xl corners, muted action buttons, clean divider lines
+- Chat panel — light panel styling with soft borders and readable input fields
 
 ---
 

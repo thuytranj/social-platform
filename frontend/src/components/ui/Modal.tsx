@@ -43,13 +43,13 @@ export const Modal = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-900/20 dark:bg-black/70 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal panel */}
       <div
-        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 rounded-2xl shadow-lg dark:shadow-2xl animate-scale-in flex flex-col max-h-[calc(100vh-2rem)]`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 rounded-[28px] shadow-[0_18px_60px_rgba(15,23,42,0.14)] animate-scale-in flex flex-col max-h-[calc(100vh-2rem)]`}
       >
         {/* Header */}
         {(title || !!onClose) && (
@@ -61,7 +61,7 @@ export const Modal = ({
             )}
             <button
               onClick={onClose}
-              className="ml-auto text-gray-500 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-surface-200"
+              className="ml-auto text-gray-500 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors rounded-full p-2 hover:bg-gray-100 dark:hover:bg-surface-200"
             >
               <X size={20} />
             </button>

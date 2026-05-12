@@ -21,7 +21,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-ink-faint">
+            <div className="absolute left-3 text-gray-400 dark:text-ink-faint">
               {leftIcon}
             </div>
           )}
@@ -29,12 +29,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={`
-              w-full rounded-xl border bg-gray-50 dark:bg-surface-200
+              w-full rounded-2xl border bg-gray-50 dark:bg-surface-200
               px-4 py-2.5 text-sm text-gray-900 dark:text-ink
               placeholder:text-gray-400 dark:placeholder:text-ink-faint
               focus:outline-none focus:ring-2 transition-all duration-150
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'border-black/10 dark:border-white/10 focus:ring-primary-500/20 focus:border-primary-500'}
+              ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/20 focus:border-primary-500'}
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon || error ? 'pr-10' : ''}
               ${className}

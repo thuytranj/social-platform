@@ -44,7 +44,7 @@ export const Dropdown = ({
     <div className="relative inline-block text-left" ref={dropdownRef}>
       <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
         {trigger || (
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/50">
+          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/40">
             <MoreHorizontal size={20} />
           </button>
         )}
@@ -52,7 +52,7 @@ export const Dropdown = ({
 
       {isOpen && (
         <div
-          className={`absolute z-50 mt-2 w-48 rounded-xl bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 shadow-lg dark:shadow-xl py-1 animate-scale-in origin-top-${align} ${align === 'right' ? 'right-0' : 'left-0'}`}
+          className={`absolute z-50 mt-2 w-48 rounded-2xl bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 shadow-[0_18px_48px_rgba(15,23,42,0.12)] py-1 animate-scale-in origin-top-${align} ${align === 'right' ? 'right-0' : 'left-0'}`}
         >
           {items.map((item, index) => (
             <button

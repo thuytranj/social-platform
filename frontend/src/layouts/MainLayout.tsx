@@ -6,7 +6,7 @@ import { ToastContainer } from '../components/ui/Toast';
 
 export const MainLayout = () => {
   return (
-    <div className="flex min-h-screen bg-white dark:bg-surface-50 text-gray-900 dark:text-ink">
+    <div className="flex min-h-screen bg-[#eef1f6] dark:bg-surface-50 text-gray-900 dark:text-ink">
       {/* Desktop Sidebar */}
       <Sidebar />
 

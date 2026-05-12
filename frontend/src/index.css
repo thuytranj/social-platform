@@ -100,16 +100,16 @@ body {
 
   /* Cards */
   .card {
-    @apply bg-white dark:bg-surface-50 border border-black/[0.06] dark:border-white/[0.06] rounded-2xl shadow-dark-sm;
+    @apply bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/[0.06] rounded-[28px] shadow-[0_10px_30px_rgba(15,23,42,0.06)];
   }
 
   .card-elevated {
-    @apply bg-white dark:bg-surface-200 border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-dark;
+    @apply bg-white dark:bg-surface-200 border border-gray-200 dark:border-white/[0.08] rounded-[28px] shadow-[0_16px_44px_rgba(15,23,42,0.10)];
   }
 
   /* Glass effect */
   .glass {
-    @apply backdrop-blur-md bg-white/70 dark:bg-surface-50/70 border border-white/30 dark:border-white/10;
+    @apply backdrop-blur-md bg-white/75 dark:bg-surface-50/70 border border-white/40 dark:border-white/10;
   }
 
   /* Skeleton shimmer */
@@ -144,7 +144,7 @@ body {
 
   /* Gradient button */
   .btn-gradient {
-    @apply bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white font-semibold transition-all duration-200 shadow-glow-sm hover:shadow-glow active:scale-95;
+    @apply bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md active:scale-95;
   }
 
   /* Nav item active */

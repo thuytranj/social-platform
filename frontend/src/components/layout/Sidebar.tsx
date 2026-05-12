@@ -9,7 +9,7 @@ export const Sidebar = () => {
   const { user } = useAuth();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-gray-200 dark:border-white/10 bg-white dark:bg-surface-50 overflow-y-auto px-4 py-6 z-40">
+    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-gray-200 dark:border-white/10 bg-white/95 dark:bg-surface-50 overflow-y-auto px-4 py-6 z-40 backdrop-blur-sm">
       <Link to="/" className="flex items-center gap-2 px-2 mb-8 hover-lift">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white font-bold text-xl shadow-glow-sm">
           V
@@ -35,13 +35,13 @@ export const Sidebar = () => {
               className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group font-medium text-[15px]
                 ${
                   isActive
-                    ? 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40'
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 shadow-sm'
                     : 'text-gray-700 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink hover:bg-gray-100 dark:hover:bg-surface-200'
                 }`}
             >
               <Icon
                 size={22}
-                className={`transition-colors ${isActive ? 'text-primary-500' : 'group-hover:text-primary-500'}`}
+                className={`transition-colors ${isActive ? 'text-primary-600' : 'group-hover:text-primary-500'}`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               {route.label}

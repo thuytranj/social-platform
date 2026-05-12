@@ -40,13 +40,13 @@ export const Avatar = ({
         <img
           src={src}
           alt={alt}
-          className={`w-full h-full object-cover rounded-full bg-surface-200 border border-border-subtle ${onClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+          className={`w-full h-full object-cover rounded-full bg-gray-100 border border-gray-200 ${onClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(alt)}&background=random`;
           }}
         />
       ) : (
-        <div className={`w-full h-full flex items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white font-medium ${onClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}>
+        <div className={`w-full h-full flex items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-accent-500 text-white font-medium shadow-sm ${onClick ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}>
           {getInitials(alt)}
         </div>
       )}

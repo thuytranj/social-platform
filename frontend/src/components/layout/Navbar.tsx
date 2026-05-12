@@ -39,6 +39,24 @@ export const Navbar = () => {
     navigate('/search');
   };
 
+  const userMenuItems = [
+    {
+      label: 'Profile',
+      onClick: () => navigate(`/profile/${user?.id}`),
+    },
+    {
+      label: 'Settings',
+      icon: <Settings size={16} />,
+      onClick: () => navigate('/settings'),
+    },
+    {
+      label: 'Log Out',
+      icon: <LogOut size={16} />,
+      onClick: handleLogout,
+      danger: true,
+    },
+  ];
+
   return (
     <header className="sticky top-0 z-40 bg-white/80 dark:bg-surface-50/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10 h-16 flex items-center justify-between px-4 md:px-8">
       {/* Mobile Logo */}
@@ -86,37 +104,19 @@ export const Navbar = () => {
         </button>
 
         {user && (
-          <div className="md:hidden">
-            <Dropdown
-              align="right"
-              trigger={
-                <div className="p-0.5 ml-2 cursor-pointer">
-                  <Avatar
-                    src={user.profile?.avatar_url}
-                    alt={user.username}
-                    size="sm"
-                  />
-                </div>
-              }
-              items={[
-                {
-                  label: 'Profile',
-                  onClick: () => navigate(`/profile/${user.id}`),
-                },
-                {
-                  label: 'Settings',
-                  icon: <Settings size={16} />,
-                  onClick: () => navigate('/settings'),
-                },
-                {
-                  label: 'Log Out',
-                  icon: <LogOut size={16} />,
-                  onClick: handleLogout,
-                  danger: true,
-                },
-              ]}
-            />
-          </div>
+          <Dropdown
+            align="right"
+            trigger={
+              <div className="p-0.5 ml-2 cursor-pointer">
+                <Avatar
+                  src={user.profile?.avatar_url}
+                  alt={user.username}
+                  size="sm"
+                />
+              </div>
+            }
+            items={userMenuItems}
+          />
         )}
       </div>
     </header>

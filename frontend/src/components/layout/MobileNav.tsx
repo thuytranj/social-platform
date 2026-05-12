@@ -9,7 +9,7 @@ export const MobileNav = () => {
   const { user } = useAuth();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-surface-50/90 backdrop-blur-md border-t border-gray-200 dark:border-white/10 pb-safe z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-surface-50/90 backdrop-blur-md border-t border-gray-200 dark:border-white/10 pb-safe z-50 shadow-[0_-8px_30px_rgba(15,23,42,0.06)]">
       <div className="flex items-center justify-around h-14">
         {NAV_ROUTES.map((route) => {
           const Icon = Icons[
@@ -25,7 +25,7 @@ export const MobileNav = () => {
               to={route.path}
               className={`flex flex-col items-center justify-center w-full h-full relative ${
                 isActive
-                  ? 'text-primary-500'
+                    ? 'text-primary-600'
                   : 'text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink'
               }`}
             >
