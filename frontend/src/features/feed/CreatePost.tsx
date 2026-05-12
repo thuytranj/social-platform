@@ -19,7 +19,7 @@ export const CreatePost = () => {
   const [privacy, setPrivacy] = useState<PostPrivacy>(PostPrivacy.PUBLIC);
   const [files, setFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutate: createPost, isPending } = useMutation({
@@ -40,14 +40,14 @@ export const CreatePost = () => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
       const totalFiles = files.length + newFiles.length;
-      
+
       if (totalFiles > 10) {
         error('You can only attach up to 10 files per post.');
         return;
       }
 
       setFiles((prev) => [...prev, ...newFiles]);
-      
+
       const newUrls = newFiles.map((f) => URL.createObjectURL(f));
       setPreviewUrls((prev) => [...prev, ...newUrls]);
     }
@@ -62,7 +62,7 @@ export const CreatePost = () => {
 
   const privacyItems = Object.entries(PRIVACY_CONFIG).map(([key, config]) => ({
     label: config.label,
-    icon: <span>{config.icon}</span>,
+    icon: <span>{config.getIcon()}</span>,
     onClick: () => setPrivacy(key as PostPrivacy),
   }));
 
@@ -70,7 +70,11 @@ export const CreatePost = () => {
     <div className="card p-4 sm:p-5 mb-6">
       <div className="flex gap-4">
         <div className="flex-shrink-0">
-          <Avatar src={user?.profile?.avatar_url} alt={user?.username} size="md" />
+          <Avatar
+            src={user?.profile?.avatar_url}
+            alt={user?.username}
+            size="md"
+          />
         </div>
         <div className="flex-1 min-w-0 flex flex-col">
           <textarea
@@ -82,10 +86,19 @@ export const CreatePost = () => {
           />
 
           {previewUrls.length > 0 && (
-            <div className={`mt-3 grid gap-2 ${previewUrls.length > 1 ? (previewUrls.length > 2 ? 'media-grid-3' : 'media-grid-2') : 'grid-cols-1'}`}>
+            <div
+              className={`mt-3 grid gap-2 ${previewUrls.length > 1 ? (previewUrls.length > 2 ? 'media-grid-3' : 'media-grid-2') : 'grid-cols-1'}`}
+            >
               {previewUrls.map((url, i) => (
-                <div key={i} className="relative rounded-xl overflow-hidden group aspect-video sm:aspect-auto sm:max-h-64">
-                  <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                <div
+                  key={i}
+                  className="relative rounded-xl overflow-hidden group aspect-video sm:aspect-auto sm:max-h-64"
+                >
+                  <img
+                    src={url}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
                   <button
                     onClick={() => removeFile(i)}
                     className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
@@ -116,13 +129,15 @@ export const CreatePost = () => {
           >
             <ImageIcon size={20} />
           </button>
-          
+
           <Dropdown
             align="left"
             trigger={
               <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-ink-muted hover:bg-surface-100 dark:hover:bg-surface-200 transition-colors ml-2">
-                <span>{PRIVACY_CONFIG[privacy].icon}</span>
-                <span className="hidden sm:inline">{PRIVACY_CONFIG[privacy].label}</span>
+                <span>{PRIVACY_CONFIG[privacy].getIcon()}</span>
+                <span className="hidden sm:inline">
+                  {PRIVACY_CONFIG[privacy].label}
+                </span>
               </button>
             }
             items={privacyItems}

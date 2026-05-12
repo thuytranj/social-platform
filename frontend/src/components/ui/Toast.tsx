@@ -28,7 +28,7 @@ const ToastItem = ({ toast, onRemove }: { toast: any; onRemove: () => void }) =>
   }, [onRemove, toast.duration]);
 
   return (
-    <div className="flex items-start gap-3 bg-bg-elevated border border-border-base shadow-dark-lg rounded-xl p-4 min-w-[300px] max-w-sm pointer-events-auto animate-slide-left">
+    <div className="flex items-start gap-3 bg-white dark:bg-gray-800 border border-border-base dark:border-gray-600 shadow-dark-lg rounded-xl p-4 min-w-[300px] max-w-sm pointer-events-auto animate-slide-left">
       <div className="flex-shrink-0 mt-0.5">{icons[toast.type as ToastType]}</div>
       <div className="flex-1">
         <p className="text-sm font-medium text-ink">{toast.message}</p>

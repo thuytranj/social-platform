@@ -25,7 +25,7 @@ export const MobileNav = () => {
               to={route.path}
               className={`flex flex-col items-center justify-center w-full h-full relative ${
                 isActive
-                    ? 'text-primary-600'
+                  ? 'text-primary-600'
                   : 'text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink'
               }`}
             >

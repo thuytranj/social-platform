@@ -109,6 +109,7 @@ export interface Post {
   id: string;
   author_id: string;
   group_id: string | null;
+  group_name: string | null;
   content: string;
   privacy: PostPrivacy;
   react_count: number;

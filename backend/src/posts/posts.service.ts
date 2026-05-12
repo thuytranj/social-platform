@@ -265,6 +265,8 @@ export class PostsService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.postMedias', 'pm')
       .leftJoinAndSelect('pm.media', 'media')
+      .leftJoin('post.group', 'group')
+      .addSelect(['group.id', 'group.name'])
       .leftJoinAndSelect('post.author', 'author')
       .leftJoinAndSelect('post.original_post', 'originalPost')
       .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
@@ -275,10 +277,13 @@ export class PostsService {
       .getMany();
 
     // Transform the posts to PostResponseDto
-    const data = posts.map((post) =>
-      plainToInstance(PostResponseDto, post, { excludeExtraneousValues: true }),
-    );
-
+    const data = posts.map((post) => ({
+      ...plainToInstance(PostResponseDto, post, {
+        excludeExtraneousValues: true,
+      }),
+      group_name: post.group?.name ?? null,
+    }));
+    
     return {
       data,
       nextCursor,
@@ -361,6 +366,8 @@ export class PostsService {
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.postMedias', 'pm')
       .leftJoinAndSelect('pm.media', 'media')
+      .leftJoin('post.group', 'group')
+      .addSelect(['group.id', 'group.name'])
       .leftJoinAndSelect('post.author', 'author')
       .leftJoinAndSelect('post.original_post', 'originalPost')
       .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
@@ -372,9 +379,9 @@ export class PostsService {
 
     return {
       data: posts.map((post) =>
-        plainToInstance(PostResponseDto, post, {
+        ({...plainToInstance(PostResponseDto, post, {
           excludeExtraneousValues: true,
-        }),
+        }), group_name: post.group?.name ?? null})
       ),
       nextCursor,
     };

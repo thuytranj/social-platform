@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Post, ReactionType, ReactionTargetType } from '../../types';
 import { Avatar } from '../../components/ui/Avatar';
 import { formatRelativeTime } from '../../utils/date';
-import { MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
+import { MessageCircle, Share2, MoreHorizontal, ThumbsUp } from 'lucide-react';
 import { REACTION_CONFIG, PRIVACY_CONFIG } from '../../constants';
 import { Dropdown } from '../../components/ui/Dropdown';
 import { useEffect, useRef, useState } from 'react';
@@ -91,7 +91,26 @@ export const PostCard = ({ post }: PostCardProps) => {
         },
       ];
 
-  const privacyIcon = PRIVACY_CONFIG[post.privacy].icon;
+  const privacyIcon = PRIVACY_CONFIG[post.privacy].getIcon();
+
+  const formatCount = (count: number) => {
+    if (count < 1000) return `${count}`;
+
+    const compact = (count / 1000).toLocaleString('vi-VN', {
+      maximumFractionDigits: 1,
+    });
+
+    return `${compact}K`;
+  };
+
+  const reactionBadges = post.user_reaction
+    ? [
+        post.user_reaction,
+        post.user_reaction === ReactionType.LOVE
+          ? ReactionType.LIKE
+          : ReactionType.LOVE,
+      ]
+    : [ReactionType.LIKE, ReactionType.LOVE];
 
   return (
     <>
@@ -99,7 +118,7 @@ export const PostCard = ({ post }: PostCardProps) => {
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <Link to={`/profile/${post.author_id}`}>
+            <Link to={`/profile/${post.author.id}`}>
               <Avatar
                 src={post.author.profile?.avatar_url}
                 alt={post.author.username}
@@ -108,7 +127,7 @@ export const PostCard = ({ post }: PostCardProps) => {
             </Link>
             <div>
               <Link
-                to={`/profile/${post.author_id}`}
+                to={`/profile/${post.author.id}`}
                 className="font-semibold text-gray-900 dark:text-ink hover:text-primary-500 transition-colors"
               >
                 {post.author.profile?.full_name || post.author.username}
@@ -119,14 +138,14 @@ export const PostCard = ({ post }: PostCardProps) => {
                 <span title={PRIVACY_CONFIG[post.privacy].label}>
                   {privacyIcon}
                 </span>
-                {post.group && (
+                {post.group_id && (
                   <>
                     <span>•</span>
                     <Link
                       to={`/groups/${post.group_id}`}
                       className="font-medium hover:text-primary-500"
                     >
-                      {post.group.name}
+                      {post.group_name}
                     </Link>
                   </>
                 )}
@@ -181,112 +200,102 @@ export const PostCard = ({ post }: PostCardProps) => {
           </div>
         )}
 
-        {/* Stats */}
+        {/* Stats (interactive) */}
         {(post.react_count > 0 ||
           post.comment_count > 0 ||
           post.share_count > 0) && (
           <div className="flex items-center justify-between py-3 text-sm text-gray-600 dark:text-slate-400 border-b border-gray-200 dark:border-white/10 mb-2">
-            <div className="flex items-center gap-1.5">
-              {post.react_count > 0 && (
+            <div className="flex items-center gap-5 sm:gap-6">
+              <div className="relative">
+                {showReactionPicker && (
+                  <div
+                    className="absolute -bottom-16 left-0 mb-2 z-20"
+                    onMouseEnter={openReactionPicker}
+                    onMouseLeave={closeReactionPicker}
+                  >
+                    <div className="reaction-picker animate-slide-up pointer-events-auto">
+                      {Object.entries(REACTION_CONFIG).map(([type, config]) => (
+                        <button
+                          key={type}
+                          onClick={() => handleReact(type as ReactionType)}
+                          className="reaction-emoji hover-lift tooltip-trigger"
+                          title={config.label}
+                        >
+                          {config.emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button
+                  onMouseEnter={openReactionPicker}
+                  onMouseLeave={closeReactionPicker}
                   onClick={() => setShowReactors(true)}
-                  className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
+                  aria-label={`${post.react_count} reactions`}
                 >
-                  <span className="flex -space-x-1">
-                    <span className="w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-500/25 ring-1 ring-white dark:ring-[#1f2235] flex items-center justify-center text-[11px]">
-                      👍
-                    </span>
+                  <ThumbsUp
+                    size={18}
+                    className="text-gray-600 dark:text-slate-400"
+                  />
+                  <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+                    {formatCount(post.react_count)}
                   </span>
-                  <span className="font-medium">{post.react_count}</span>
                 </button>
-              )}
+              </div>
+
+              <button
+                onClick={() => setShowComments(true)}
+                className="flex items-center gap-2.5"
+              >
+                <MessageCircle
+                  size={18}
+                  className="text-gray-600 dark:text-slate-400"
+                />
+                <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+                  {formatCount(post.comment_count)}
+                </span>
+              </button>
+
+              <button
+                onClick={() => setShowShare(true)}
+                className="flex items-center gap-2.5"
+              >
+                <Share2
+                  size={18}
+                  className="text-gray-600 dark:text-slate-400"
+                />
+                <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+                  {formatCount(post.share_count)}
+                </span>
+              </button>
             </div>
-            <div className="flex gap-4">
-              {post.comment_count > 0 && (
-                <span>{post.comment_count} comments</span>
-              )}
-              {post.share_count > 0 && <span>{post.share_count} shares</span>}
+
+            <div
+              className="flex items-center -space-x-2 cursor-pointer"
+              onClick={() => setShowReactors(true)}
+            >
+              {reactionBadges.map((type, index) => (
+                <span
+                  key={`${type}-${index}`}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.12)] ring-2 ring-white dark:ring-[#13131b]"
+                  style={{ backgroundColor: REACTION_CONFIG[type].color }}
+                >
+                  {REACTION_CONFIG[type].emoji}
+                </span>
+              ))}
             </div>
           </div>
         )}
-
-        {/* Actions */}
-        <div className="flex items-stretch justify-between pt-0.5 relative gap-3">
-          {/* Reaction Action */}
-          <div
-            className="relative flex-1"
-            onMouseEnter={openReactionPicker}
-            onMouseLeave={closeReactionPicker}
-          >
-            {showReactionPicker && (
-              <div
-                className="absolute bottom-full left-0 mb-2 pt-2 z-20"
-                onMouseEnter={openReactionPicker}
-                onMouseLeave={closeReactionPicker}
-              >
-                <div className="reaction-picker animate-slide-up pointer-events-auto">
-                {Object.entries(REACTION_CONFIG).map(([type, config]) => (
-                  <button
-                    key={type}
-                    onClick={() => handleReact(type as ReactionType)}
-                    className="reaction-emoji hover-lift tooltip-trigger"
-                    title={config.label}
-                  >
-                    {config.emoji}
-                  </button>
-                ))}
-                </div>
-              </div>
-            )}
-
-            <button
-              className={`flex items-center justify-center gap-2 w-full h-12 rounded-full font-semibold text-[15px] transition-colors border
-                ${
-                  post.user_reaction
-                    ? 'text-primary-600 bg-primary-50 border-primary-100 dark:text-primary-200 dark:bg-primary-500/12 dark:border-primary-400/30'
-                    : 'text-gray-600 dark:text-slate-300 bg-gray-50/80 dark:bg-white/[0.02] border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/[0.05]'
-                }`}
-              onClick={() => handleReact(post.user_reaction ? post.user_reaction : ReactionType.LIKE)}
-            >
-              {post.user_reaction ? (
-                <span className="text-lg leading-none">
-                  {REACTION_CONFIG[post.user_reaction].emoji}
-                </span>
-              ) : (
-                <span className="text-lg leading-none grayscale opacity-70">
-                  👍
-                </span>
-              )}
-              <span className="hidden sm:inline">
-                {post.user_reaction
-                  ? REACTION_CONFIG[post.user_reaction].label
-                  : 'Like'}
-              </span>
-            </button>
-          </div>
-
-          {/* Comment Action */}
-          <button
-            onClick={() => setShowComments(true)}
-            className="flex-1 flex items-center justify-center gap-2 h-12 rounded-full font-semibold text-[15px] text-gray-600 dark:text-slate-300 bg-gray-50/80 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
-          >
-            <MessageCircle size={23} />
-            <span>Comment</span>
-          </button>
-
-          {/* Share Action */}
-          <button
-            onClick={() => setShowShare(true)}
-            className="flex-1 flex items-center justify-center gap-2 h-12 rounded-full font-semibold text-[15px] text-gray-600 dark:text-slate-300 bg-gray-50/80 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/[0.05] transition-colors"
-          >
-            <Share2 size={23} />
-            <span>Share</span>
-          </button>
-        </div>
       </div>
 
       {/* Modals */}
-      <ReactionListModal postId={post.id} isOpen={showReactors} onClose={() => setShowReactors(false)} />
+      <ReactionListModal
+        postId={post.id}
+        isOpen={showReactors}
+        onClose={() => setShowReactors(false)}
+      />
       <Modal
         isOpen={showComments}
         onClose={() => setShowComments(false)}

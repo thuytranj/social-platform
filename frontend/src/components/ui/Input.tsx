@@ -9,13 +9,19 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className = '', label, error, leftIcon, rightIcon, id, ...props }, ref) => {
+  (
+    { className = '', label, error, leftIcon, rightIcon, id, ...props },
+    ref,
+  ) => {
     const inputId = id || Math.random().toString(36).substr(2, 9);
 
     return (
       <div className="w-full flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-ink-muted ml-1">
+          <label
+            htmlFor={inputId}
+            className="text-sm font-medium text-ink-muted ml-1"
+          >
             {label}
           </label>
         )}
@@ -47,15 +53,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
           {rightIcon && (
-            <div className="absolute right-3 text-ink-faint">
-              {rightIcon}
-            </div>
+            <div className="absolute right-3 text-ink-faint">{rightIcon}</div>
           )}
         </div>
         {error && <span className="text-xs text-red-500 ml-1">{error}</span>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = 'Input';

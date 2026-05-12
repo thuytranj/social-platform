@@ -112,16 +112,16 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
                 onMouseLeave={closeReactionPicker}
               >
                 <div className="reaction-picker animate-slide-up">
-                {Object.entries(REACTION_CONFIG).map(([type, config]) => (
-                  <button
-                    key={type}
-                    onClick={() => handleReact(type as ReactionType)}
-                    className="reaction-emoji hover-lift"
-                    title={config.label}
-                  >
-                    {config.emoji}
-                  </button>
-                ))}
+                  {Object.entries(REACTION_CONFIG).map(([type, config]) => (
+                    <button
+                      key={type}
+                      onClick={() => handleReact(type as ReactionType)}
+                      className="reaction-emoji hover-lift"
+                      title={config.label}
+                    >
+                      {config.emoji}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
