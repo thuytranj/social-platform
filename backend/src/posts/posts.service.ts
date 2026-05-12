@@ -266,7 +266,7 @@ export class PostsService {
       .leftJoinAndSelect('post.postMedias', 'pm')
       .leftJoinAndSelect('pm.media', 'media')
       .leftJoin('post.group', 'group')
-      .addSelect(['group.id', 'group.name'])
+      .addSelect(['group.id', 'group.name', 'group.cover_url'])
       .leftJoinAndSelect('post.author', 'author')
       .leftJoinAndSelect('post.original_post', 'originalPost')
       .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
@@ -282,6 +282,7 @@ export class PostsService {
         excludeExtraneousValues: true,
       }),
       group_name: post.group?.name ?? null,
+      group_cover_url: post.group?.cover_url ?? null,
     }));
     
     return {
@@ -367,7 +368,7 @@ export class PostsService {
       .leftJoinAndSelect('post.postMedias', 'pm')
       .leftJoinAndSelect('pm.media', 'media')
       .leftJoin('post.group', 'group')
-      .addSelect(['group.id', 'group.name'])
+      .addSelect(['group.id', 'group.name', 'group.cover_url'])
       .leftJoinAndSelect('post.author', 'author')
       .leftJoinAndSelect('post.original_post', 'originalPost')
       .leftJoinAndSelect('originalPost.author', 'originalPostAuthor')
@@ -381,7 +382,7 @@ export class PostsService {
       data: posts.map((post) =>
         ({...plainToInstance(PostResponseDto, post, {
           excludeExtraneousValues: true,
-        }), group_name: post.group?.name ?? null})
+        }), group_name: post.group?.name ?? null, group_cover_url: post.group?.cover_url ?? null})
       ),
       nextCursor,
     };

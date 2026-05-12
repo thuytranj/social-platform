@@ -183,12 +183,12 @@ export const Profile = () => {
       {/* Profile Info */}
       <div className="px-4 sm:px-8 -mt-16 sm:-mt-20 relative z-10 mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
-            <div className="p-1 bg-white dark:bg-surface-50 rounded-full inline-block">
+          <div className="flex flex-col items-start sm:flex-row sm:items-end gap-4 sm:gap-6">
+            <div className="p-1 bg-transparent rounded-full inline-block ring-2 ring-primary-500 bg-white dark:bg-surface-50 ">
               <Avatar
                 src={user.profile?.avatar_url}
                 alt={user.username}
-                className="w-32 h-32 sm:w-40 sm:h-40 shadow-lg"
+                className="w-32 h-32 sm:w-40 sm:h-40 bg-transparent"
               />
             </div>
 

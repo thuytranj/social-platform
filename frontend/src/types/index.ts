@@ -91,7 +91,7 @@ export interface PostMedia {
   id: string;
   url: string;
   public_id: string;
-  media_type: 'image' | 'video';
+  type: 'image' | 'video';
   width?: number;
   height?: number;
 }
@@ -99,7 +99,7 @@ export interface PostMedia {
 export interface MessageMedia {
   id: string;
   url: string;
-  media_type: 'image' | 'video' | 'file';
+  type: 'image' | 'video' | 'file';
 }
 
 // ============================================================

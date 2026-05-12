@@ -14,7 +14,7 @@ export const MainLayout = () => {
       <div className="flex-1 flex flex-col min-w-0 pb-[calc(env(safe-area-inset-bottom)+3.5rem)] md:pb-0">
         <Navbar />
 
-        <main className="flex-1 w-full max-w-7xl mx-auto md:p-6 lg:p-8 animate-fade-in relative">
+        <main className="flex-1 w-full max-w-7xl mx-auto md:p-6 lg:p-8 p-4 animate-fade-in relative">
           <Outlet />
         </main>
       </div>
