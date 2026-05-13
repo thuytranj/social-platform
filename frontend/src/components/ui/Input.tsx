@@ -27,22 +27,21 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-gray-400 dark:text-ink-faint">
-              {leftIcon}
-            </div>
+            <div className="absolute left-3 text-text-tertiary">{leftIcon}</div>
           )}
           <input
             ref={ref}
             id={inputId}
             className={`
-              w-full rounded-2xl border bg-gray-50 dark:bg-surface-200
-              px-4 py-2.5 text-sm text-gray-900 dark:text-ink
-              placeholder:text-gray-400 dark:placeholder:text-ink-faint
-              focus:outline-none focus:ring-2 transition-all duration-150
+              w-full rounded-sm border bg-surface-50 dark:bg-surface-700
+              px-4 py-2.5 text-sm text-ink dark:text-ink
+              placeholder:text-text-tertiary dark:placeholder:text-text-tertiary
+              transition-all duration-150
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'border-gray-200 dark:border-white/10 focus:ring-primary-500/20 focus:border-primary-500'}
+              ${error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : 'border-border-variant dark:border-white/10  focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500'}
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon || error ? 'pr-10' : ''}
+              focus:outline-none
               ${className}
             `}
             {...props}
@@ -53,10 +52,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
           {rightIcon && (
-            <div className="absolute right-3 text-ink-faint">{rightIcon}</div>
+            <div className="absolute right-3 text-text-tertiary">
+              {rightIcon}
+            </div>
           )}
         </div>
-        {error && <span className="text-xs text-red-500 ml-1">{error}</span>}
+        {error && <span className="text-xs text-red-600 ml-1">{error}</span>}
       </div>
     );
   },

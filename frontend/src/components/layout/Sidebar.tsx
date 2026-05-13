@@ -9,17 +9,59 @@ export const Sidebar = () => {
   const { user } = useAuth();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-gray-200 dark:border-white/10 bg-white/95 dark:bg-surface-50 overflow-y-auto px-4 py-6 z-40 backdrop-blur-sm">
-      <Link to="/" className="flex items-center gap-2 px-2 mb-8 hover-lift">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white font-bold text-xl shadow-glow-sm">
-          V
-        </div>
-        <span className="font-display font-bold text-xl tracking-tight text-gray-900 dark:text-ink">
-          VibeConnect
-        </span>
-      </Link>
+    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-border-subtle bg-white dark:border-white/10 dark:bg-surface-800 overflow-y-auto px-4 py-6 z-40">
+      {/* Profile Card */}
+      {user && (
+        <Link
+          to={`/profile/${user.id}`}
+          className="flex flex-col items-center gap-3 mb-8 p-4 rounded-lg hover:bg-surface dark:hover:bg-surface-700 transition-colors group"
+        >
+          <Avatar
+            src={user.profile?.avatar_url}
+            alt={user.username}
+            size="lg"
+          />
+          <div className="text-center">
+            <p className="font-semibold text-text-primary dark:text-text-primary group-hover:text-primary-600 transition-colors">
+              {user.profile?.full_name || user.username}
+            </p>
+            <p className="text-xs text-text-tertiary dark:text-text-tertiary">
+              @{user.username}
+            </p>
+          </div>
 
-      <nav className="flex-1 space-y-1">
+          {/* Stats */}
+          <div className="flex gap-6 w-full justify-around text-center pt-3 border-t border-border-subtle dark:border-white/10">
+            <div>
+              <p className="font-semibold text-text-primary dark:text-text-primary text-sm">
+                {Math.floor(Math.random() * 1000) + 100}
+              </p>
+              <p className="text-xs text-text-tertiary dark:text-text-tertiary">
+                Followers
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary dark:text-text-primary text-sm">
+                {Math.floor(Math.random() * 500) + 50}
+              </p>
+              <p className="text-xs text-text-tertiary dark:text-text-tertiary">
+                Following
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold text-text-primary dark:text-text-primary text-sm">
+                {Math.floor(Math.random() * 200) + 20}
+              </p>
+              <p className="text-xs text-text-tertiary dark:text-text-tertiary">
+                Posts
+              </p>
+            </div>
+          </div>
+        </Link>
+      )}
+
+      {/* Navigation Menu */}
+      <nav className="flex-1 space-y-2">
         {NAV_ROUTES.map((route) => {
           const Icon = Icons[
             route.icon as keyof typeof Icons
@@ -32,23 +74,27 @@ export const Sidebar = () => {
             <Link
               key={route.path}
               to={route.path}
-              className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group font-medium text-[15px]
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group font-medium text-sm w-full
                 ${
                   isActive
-                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/40 shadow-sm'
-                    : 'text-gray-700 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink hover:bg-gray-100 dark:hover:bg-surface-200'
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/30 shadow-xs dark:shadow-dark-xs'
+                    : 'text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary hover:bg-surface dark:hover:bg-surface-700 transition-colors'
                 }`}
             >
               <Icon
-                size={22}
-                className={`transition-colors ${isActive ? 'text-primary-600' : 'group-hover:text-primary-500'}`}
+                size={20}
+                className={`transition-colors flex-shrink-0 ${
+                  isActive
+                    ? 'text-primary-600'
+                    : 'text-text-tertiary group-hover:text-primary-500'
+                }`}
                 strokeWidth={isActive ? 2.5 : 2}
               />
-              {route.label}
+              <span>{route.label}</span>
 
-              {/* Mock Notification Badge */}
+              {/* Notification Badge */}
               {route.label === 'Messages' && (
-                <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                <span className="ml-auto bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-md">
                   3
                 </span>
               )}
@@ -57,32 +103,22 @@ export const Sidebar = () => {
         })}
       </nav>
 
-      {user && (
-        <div className="mt-auto pt-4 border-t border-gray-200 dark:border-white/10">
-          <Link
-            to={`/profile/${user.id}`}
-            className="flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-surface-200 transition-colors group"
-          >
-            <Avatar
-              src={user.profile?.avatar_url}
-              alt={user.username}
-              size="md"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 dark:text-ink truncate group-hover:text-primary-500 transition-colors">
-                {user.profile?.full_name || user.username}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-ink-muted truncate">
-                @{user.username}
-              </p>
-            </div>
-            <Icons.ChevronRight
-              size={18}
-              className="text-gray-400 dark:text-ink-faint group-hover:text-gray-600 dark:group-hover:text-ink-muted"
-            />
-          </Link>
-        </div>
-      )}
+      {/* Footer */}
+      <div className="mt-auto pt-4 border-t border-border-subtle dark:border-white/10 space-y-2 text-xs text-text-tertiary dark:text-text-tertiary">
+        <a
+          href="#"
+          className="block hover:text-text-secondary transition-colors"
+        >
+          Privacy Terms
+        </a>
+        <a
+          href="#"
+          className="block hover:text-text-secondary transition-colors"
+        >
+          Advertising
+        </a>
+        <p className="text-xs text-text-tertiary pt-2">© 2024 VibeConnect</p>
+      </div>
     </aside>
   );
 };

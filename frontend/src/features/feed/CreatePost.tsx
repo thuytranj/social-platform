@@ -67,7 +67,7 @@ export const CreatePost = () => {
   }));
 
   return (
-    <div className="card p-4 sm:p-5 mb-6">
+    <div className="bg-white dark:bg-surface-800 border border-border-subtle dark:border-white/10 rounded-xl p-4 sm:p-5 mb-6 shadow-xs dark:shadow-dark-xs">
       <div className="flex gap-4">
         <div className="flex-shrink-0">
           <Avatar
@@ -81,7 +81,7 @@ export const CreatePost = () => {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="What's on your mind?"
-            className="w-full bg-transparent text-ink placeholder:text-ink-muted resize-none focus:outline-none min-h-[60px] text-[15px]"
+            className="w-full bg-transparent text-text-primary dark:text-text-primary placeholder:text-text-tertiary dark:placeholder:text-text-tertiary resize-none focus:outline-none min-h-[60px] text-[15px]"
             rows={Math.min(Math.max(content.split('\n').length, 2), 10)}
           />
 
@@ -92,7 +92,7 @@ export const CreatePost = () => {
               {previewUrls.map((url, i) => (
                 <div
                   key={i}
-                  className="relative rounded-xl overflow-hidden group aspect-video sm:aspect-auto sm:max-h-64"
+                  className="relative rounded-lg overflow-hidden group aspect-video sm:aspect-auto sm:max-h-64"
                 >
                   <img
                     src={url}
@@ -101,7 +101,7 @@ export const CreatePost = () => {
                   />
                   <button
                     onClick={() => removeFile(i)}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
+                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/70"
                   >
                     <X size={16} />
                   </button>
@@ -112,7 +112,7 @@ export const CreatePost = () => {
         </div>
       </div>
 
-      <div className="mt-4 pt-3 border-t border-border-base flex items-center justify-between">
+      <div className="mt-4 pt-3 border-t border-border-subtle dark:border-white/10 flex items-center justify-between">
         <div className="flex items-center gap-1">
           <input
             type="file"
@@ -124,7 +124,7 @@ export const CreatePost = () => {
           />
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 rounded-full text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors tooltip-trigger"
+            className="p-2 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-950/20 transition-colors"
             aria-label="Add Photo/Video"
           >
             <ImageIcon size={20} />
@@ -133,7 +133,7 @@ export const CreatePost = () => {
           <Dropdown
             align="left"
             trigger={
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-ink-muted hover:bg-surface-100 dark:hover:bg-surface-200 transition-colors ml-2">
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary dark:text-text-secondary hover:bg-surface dark:hover:bg-surface-700 transition-colors ml-2">
                 <span>{PRIVACY_CONFIG[privacy].getIcon()}</span>
                 <span className="hidden sm:inline">
                   {PRIVACY_CONFIG[privacy].label}
@@ -149,7 +149,8 @@ export const CreatePost = () => {
           disabled={!content.trim() && files.length === 0}
           isLoading={isPending}
           size="sm"
-          className="btn-gradient px-6"
+          variant="primary"
+          className="px-6"
         >
           Post
         </Button>

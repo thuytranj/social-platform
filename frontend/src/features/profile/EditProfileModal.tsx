@@ -176,7 +176,7 @@ export const EditProfileModal = ({ isOpen, onClose }: EditProfileModalProps) => 
             <textarea
               {...register('bio')}
               placeholder="Tell us about yourself..."
-              className={`w-full rounded-xl border bg-surface-50 dark:bg-surface-200 px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 transition-all duration-150 resize-none h-24 ${
+              className={`w-full rounded-sm border bg-surface-50 dark:border-white/10 dark:bg-surface-700 px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 transition-all duration-150 resize-none h-24 ${
                 errors.bio ? 'border-red-500 focus:ring-red-500/20' : 'border-border-base focus:ring-primary-500/20 focus:border-primary-500'
               }`}
             />
@@ -187,7 +187,7 @@ export const EditProfileModal = ({ isOpen, onClose }: EditProfileModalProps) => 
             <label className="text-sm font-medium text-ink-muted ml-1">Gender</label>
             <select
               {...register('sex')}
-              className="w-full rounded-xl border border-border-base bg-surface-50 dark:bg-surface-200 px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-150 appearance-none"
+              className="w-full rounded-sm border border-border-base dark:border-white/10 bg-surface-50 dark:bg-surface-700 px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-150 appearance-none"
             >
               <option value="">Prefer not to say</option>
               <option value={Gender.MALE}>Male</option>

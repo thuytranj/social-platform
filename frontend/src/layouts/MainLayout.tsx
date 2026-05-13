@@ -1,23 +1,27 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
-import { Navbar } from '../components/layout/Navbar';
+import { RightMessagesPanel } from '../components/layout/RightMessagesPanel';
 import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/ui/Toast';
+import { Navbar } from '../components/layout/Navbar';
 
 export const MainLayout = () => {
   return (
-    <div className="flex min-h-screen bg-[#eef1f6] dark:bg-surface-50 text-gray-900 dark:text-ink">
-      {/* Desktop Sidebar */}
+    <div className="flex min-h-screen bg-surface dark:bg-surface-900 text-text-primary">
+      {/* Desktop Left Sidebar */}
       <Sidebar />
 
-      {/* Main Content Area */}
+      {/* Main Feed Content */}
       <div className="flex-1 flex flex-col min-w-0 pb-[calc(env(safe-area-inset-bottom)+3.5rem)] md:pb-0">
         <Navbar />
 
-        <main className="flex-1 w-full max-w-7xl mx-auto md:p-6 lg:p-8 p-4 animate-fade-in relative">
+        <main className="flex-1 w-full max-w-7xl mx-auto md:p-6 lg:p-8 p-4 animate-fade-in relative bg-surface-50 dark:bg-surface-900">
           <Outlet />
         </main>
       </div>
+
+      {/* Desktop Right Messages Panel */}
+      <RightMessagesPanel />
 
       {/* Mobile Bottom Navigation */}
       <MobileNav />

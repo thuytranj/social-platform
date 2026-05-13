@@ -63,7 +63,7 @@ export const Groups = () => {
             <Link
               key={group.id}
               to={`/groups/${group.id}`}
-              className="card overflow-hidden group hover:shadow-dark transition-shadow duration-200 block"
+              className="card overflow-hidden group hover:shadow-lg dark:hover:shadow-dark-sm transition-shadow duration-200 block"
             >
               <div className="h-32 bg-surface-200 relative overflow-hidden">
                 {group.cover_url ? (

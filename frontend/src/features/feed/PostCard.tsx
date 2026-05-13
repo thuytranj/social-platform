@@ -134,15 +134,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
   return (
     <>
-      <div className="bg-white dark:bg-surface-50 border border-gray-200/80 dark:border-white/10 rounded-[28px] p-4 sm:p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition-shadow duration-200 hover:shadow-[0_14px_40px_rgba(15,23,42,0.08)]">
+      <div className="bg-white dark:bg-surface-800 border border-border-subtle dark:border-white/10  rounded-lg p-4 sm:p-5 shadow-xs dark:shadow-dark-xs transition-shadow duration-200 hover:shadow-sm dark:hover:shadow-dark-sm">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-start justify-between gap-3 mb-4">
           <div className="flex items-start gap-3 min-w-0">
             {isGroupPost ? (
               <div className="relative shrink-0 pt-1 pr-2">
                 <Link
                   to={groupHref || '/groups'}
-                  className="block h-12 w-12 overflow-hidden rounded-xl border border-gray-200/80 dark:border-white/10 bg-gray-100 shadow-sm"
+                  className="block h-12 w-12 overflow-hidden rounded-lg border border-border-subtle dark:border-white/10  bg-surface dark:bg-surface-700 shadow-xs dark:shadow-dark-xs"
                 >
                   {groupCoverUrl ? (
                     <img
@@ -151,7 +151,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-primary-500 to-accent-500 text-white font-semibold flex items-center justify-center">
+                    <div className="h-full w-full bg-gradient-to-br from-primary-600 to-primary-700 text-white font-semibold flex items-center justify-center text-sm">
                       {groupName.slice(0, 1).toUpperCase()}
                     </div>
                   )}
@@ -159,7 +159,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
                 <Link
                   to={`/profile/${post.author.id}`}
-                  className="absolute -bottom-1.5 right-0 rounded-full ring-2 ring-white dark:ring-surface-50 shadow-md"
+                  className="absolute -bottom-1 right-0 rounded-full ring-2 ring-white dark:ring-surface-800 shadow-xs dark:shadow-dark-xs"
                 >
                   <Avatar
                     src={post.author.profile?.avatar_url}
@@ -206,15 +206,15 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   <>
                     <Link
                       to={`/profile/${post.author.id}`}
-                      className="font-medium hover:text-primary-500 transition-colors"
+                      className="font-medium hover:text-primary-600 transition-colors"
                     >
                       {post.author.username}
                     </Link>
-                    <span>•</span>
+                    <span className="text-border-subtle">•</span>
                   </>
                 ) : null}
                 <span>{formatRelativeTime(post.created_at)}</span>
-                <span>•</span>
+                <span className="text-border-subtle">•</span>
                 <span title={PRIVACY_CONFIG[post.privacy].label}>
                   {privacyIcon}
                 </span>
@@ -228,7 +228,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         {/* Content */}
         <div className="mb-4">
           <div
-            className={`text-gray-900 dark:text-ink whitespace-pre-wrap text-[15px] transition-[max-height] duration-300 ${contentPreviewClassName}`}
+            className={`text-text-primary dark:text-text-primary whitespace-pre-wrap text-sm leading-relaxed transition-[max-height] duration-300 ${contentPreviewClassName}`}
           >
             {post.content}
           </div>
@@ -237,7 +237,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
             <button
               type="button"
               onClick={() => setIsContentExpanded((p) => !p)}
-              className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 hover:text-primary-500 transition-colors"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
             >
               {isContentExpanded ? 'Ẩn bớt' : 'Xem thêm'}{' '}
               {isContentExpanded ? (
@@ -252,18 +252,18 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         {/* Media */}
         {medias.length > 0 && (
           <div
-            className={`mb-4 grid gap-1 rounded-xl overflow-hidden ${medias.length > 1 ? (medias.length > 2 ? 'media-grid-3' : 'media-grid-2') : 'grid-cols-1'}`}
+            className={`mb-4 grid gap-1 rounded-lg overflow-hidden bg-surface-100 dark:bg-surface-700 ${medias.length > 1 ? (medias.length > 2 ? 'media-grid-3' : 'media-grid-2') : 'grid-cols-1'}`}
           >
             {medias.slice(0, 3).map((media, i) => (
               <div
                 key={media.id || i}
-                className="relative aspect-square sm:aspect-auto sm:max-h-96"
+                className="relative aspect-square sm:aspect-auto sm:max-h-96 bg-black"
               >
                 {media.media_type === 'video' ? (
                   <video
                     src={media.url}
                     controls
-                    className="w-full h-full object-cover bg-black"
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <img
@@ -273,7 +273,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
                   />
                 )}
                 {i === 2 && medias.length > 3 && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold backdrop-blur-[2px] cursor-pointer hover:bg-black/40 transition-colors">
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold backdrop-blur-sm cursor-pointer hover:bg-black/40 transition-colors">
                     +{medias.length - 3}
                   </div>
                 )}
@@ -283,93 +283,95 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         )}
 
         {/* Stats (interactive) */}
-        {(post.react_count > 0 ||
-          post.comment_count > 0 ||
-          post.share_count > 0) && (
-          <div className="flex items-center justify-between py-3 text-sm text-gray-600 dark:text-slate-400 border-b border-gray-200 dark:border-white/10 mb-2">
-            <div className="flex items-center gap-5 sm:gap-6">
-              <div className="relative">
-                {showReactionPicker && (
-                  <div
-                    className="absolute -bottom-16 left-0 mb-2 z-20"
-                    onMouseEnter={openReactionPicker}
-                    onMouseLeave={closeReactionPicker}
-                  >
-                    <div className="reaction-picker animate-slide-up pointer-events-auto">
-                      {Object.entries(REACTION_CONFIG).map(([type, config]) => (
-                        <button
-                          key={type}
-                          onClick={() => handleReact(type as ReactionType)}
-                          className="reaction-emoji hover-lift tooltip-trigger"
-                          title={config.label}
-                        >
-                          {config.emoji}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <button
+        <div className="flex items-center justify-between py-3 text-sm text-text-tertiary dark:text-text-tertiary border-t border-border-subtle dark:border-white/10 mt-3">
+          <div className="flex items-center gap-5 sm:gap-6">
+            <div className="relative">
+              {showReactionPicker && (
+                <div
+                  className="absolute -bottom-16 left-0 mb-2 z-20"
                   onMouseEnter={openReactionPicker}
                   onMouseLeave={closeReactionPicker}
-                  onClick={() => setShowReactors(true)}
-                  className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
-                  aria-label={`${post.react_count} reactions`}
                 >
-                  <ThumbsUp
-                    size={18}
-                    className="text-gray-600 dark:text-slate-400"
-                  />
-                  <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+                  <div className="reaction-picker animate-slide-up pointer-events-auto">
+                    {Object.entries(REACTION_CONFIG).map(([type, config]) => (
+                      <button
+                        key={type}
+                        onClick={() => handleReact(type as ReactionType)}
+                        className="reaction-emoji hover-lift tooltip-trigger"
+                        title={config.label}
+                      >
+                        {config.emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button
+                onMouseEnter={openReactionPicker}
+                onMouseLeave={closeReactionPicker}
+                onClick={() => setShowReactors(true)}
+                className="flex items-center gap-2 transition-opacity hover:opacity-80 active:opacity-100"
+                aria-label={`${post.react_count} reactions`}
+              >
+                <ThumbsUp
+                  size={18}
+                  className="text-text-tertiary dark:text-text-tertiary"
+                />
+                {post.react_count > 0 && (
+                  <span className="text-sm font-medium text-text-tertiary dark:text-text-tertiary">
                     {formatCount(post.react_count)}
                   </span>
-                </button>
-              </div>
+                )}
+              </button>
+            </div>
 
-              <button
-                onClick={() => setShowComments(true)}
-                className="flex items-center gap-2.5"
-              >
-                <MessageCircle
-                  size={18}
-                  className="text-gray-600 dark:text-slate-400"
-                />
-                <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+            <button
+              onClick={() => setShowComments(true)}
+              className="flex items-center gap-2 transition-opacity hover:opacity-80 active:opacity-100"
+            >
+              <MessageCircle
+                size={18}
+                className="text-text-tertiary dark:text-text-tertiary"
+              />
+              {post.comment_count > 0 && (
+                <span className="text-sm font-medium text-text-tertiary dark:text-text-tertiary">
                   {formatCount(post.comment_count)}
                 </span>
-              </button>
+              )}
+            </button>
 
-              <button
-                onClick={() => setShowShare(true)}
-                className="flex items-center gap-2.5"
-              >
-                <Share2
-                  size={18}
-                  className="text-gray-600 dark:text-slate-400"
-                />
-                <span className="text-[15px] font-medium text-gray-600 dark:text-slate-400">
+            <button
+              onClick={() => setShowShare(true)}
+              className="flex items-center gap-2 transition-opacity hover:opacity-80 active:opacity-100"
+            >
+              <Share2
+                size={18}
+                className="text-text-tertiary dark:text-text-tertiary"
+              />
+              {post.share_count > 0 && (
+                <span className="text-sm font-medium text-text-tertiary dark:text-text-tertiary">
                   {formatCount(post.share_count)}
                 </span>
-              </button>
-            </div>
-
-            <div
-              className="flex items-center -space-x-2 cursor-pointer"
-              onClick={() => setShowReactors(true)}
-            >
-              {reactionBadges.map((type, index) => (
-                <span
-                  key={`${type}-${index}`}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-[18px] shadow-[0_2px_6px_rgba(15,23,42,0.12)] ring-2 ring-white dark:ring-[#13131b]"
-                  style={{ backgroundColor: REACTION_CONFIG[type].color }}
-                >
-                  {REACTION_CONFIG[type].emoji}
-                </span>
-              ))}
-            </div>
+              )}
+            </button>
           </div>
-        )}
+
+          <div
+            className="flex items-center -space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setShowReactors(true)}
+          >
+            {reactionBadges.map((type, index) => (
+              <span
+                key={`${type}-${index}`}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-base shadow-xs dark:shadow-dark-xs ring-2 ring-white dark:ring-surface-800"
+                style={{ backgroundColor: REACTION_CONFIG[type].color }}
+              >
+                {REACTION_CONFIG[type].emoji}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Modals */}
@@ -383,7 +385,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         isOpen={showComments}
         onClose={() => setShowComments(false)}
         title="Comments"
-        maxWidth="md"
+        maxWidth="sm"
       >
         <CommentSection postId={post.id} />
       </Modal>

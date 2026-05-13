@@ -44,7 +44,7 @@ export const Dropdown = ({
     <div className="relative inline-block text-left" ref={dropdownRef}>
       <div onClick={() => setIsOpen(!isOpen)} className="cursor-pointer">
         {trigger || (
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/40">
+          <button className="p-2 rounded-full hover:bg-surface-100 dark:hover:bg-surface-200 text-text-secondary dark:text-ink-muted hover:text-text-primary dark:hover:text-ink transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500/40">
             <MoreHorizontal size={20} />
           </button>
         )}
@@ -52,7 +52,7 @@ export const Dropdown = ({
 
       {isOpen && (
         <div
-          className={`absolute z-50 mt-2 w-48 rounded-2xl bg-white dark:bg-surface-50 border border-gray-200 dark:border-white/10 shadow-[0_18px_48px_rgba(15,23,42,0.12)] py-1 animate-scale-in origin-top-${align} ${align === 'right' ? 'right-0' : 'left-0'}`}
+          className={`absolute z-50 mt-2 w-48 rounded-md bg-white dark:bg-surface-50 border border-border-variant dark:border-white/10  shadow-lg py-1 animate-scale-in origin-top-${align} ${align === 'right' ? 'right-0' : 'left-0'}`}
         >
           {items.map((item, index) => (
             <button
@@ -64,7 +64,7 @@ export const Dropdown = ({
               className={`w-full text-left px-4 py-2 text-sm flex items-center gap-3 transition-colors ${
                 item.danger
                   ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10'
-                  : 'text-gray-900 dark:text-ink hover:bg-gray-100 dark:hover:bg-surface-200'
+                  : 'text-text-primary dark:text-ink hover:bg-surface-100 dark:hover:bg-surface-200'
               }`}
             >
               {item.icon && (
@@ -72,7 +72,7 @@ export const Dropdown = ({
                   className={
                     item.danger
                       ? 'text-red-600 dark:text-red-400'
-                      : 'text-gray-500 dark:text-ink-muted'
+                      : 'text-text-secondary dark:text-ink-muted'
                   }
                 >
                   {item.icon}

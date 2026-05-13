@@ -22,25 +22,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-2xl font-medium transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50 disabled:pointer-events-none';
+      'inline-flex items-center justify-center font-medium transition-all duration-200 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50 disabled:pointer-events-none';
 
     const variants = {
       primary:
-        'bg-primary-500 text-white hover:bg-primary-600 shadow-sm shadow-primary-500/20',
+        'bg-primary-600 text-white hover:bg-primary-700 shadow-xs hover:shadow-sm',
       secondary:
-        'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-surface-200 dark:text-ink dark:hover:bg-surface-300',
+        'bg-surface-100 dark:bg-surface-200 text-ink hover:bg-surface-200 dark:hover:bg-surface-300',
       outline:
-        'border border-gray-200 dark:border-white/10 bg-white dark:bg-surface-50 text-gray-700 dark:text-ink hover:bg-gray-50 dark:hover:bg-surface-200',
-      ghost:
-        'text-gray-700 dark:text-ink-muted hover:bg-gray-100 dark:hover:bg-surface-200',
+        'border border-border-base bg-white dark:bg-surface-50 text-ink hover:bg-surface-100 dark:hover:bg-surface-200',
+      ghost: 'text-ink-muted hover:bg-surface-100 dark:hover:bg-surface-700',
       danger:
-        'bg-red-500 text-white hover:bg-red-600 shadow-sm shadow-red-500/20',
+        'bg-red-600 text-white hover:bg-red-700 shadow-xs hover:shadow-sm',
     };
 
     const sizes = {
-      sm: 'h-9 px-3.5 text-sm',
-      md: 'h-10 px-5 text-sm',
-      lg: 'h-12 px-6 text-base',
+      sm: 'h-9 px-3.5 text-sm rounded-md',
+      md: 'h-10 px-5 text-sm rounded-md',
+      lg: 'h-12 px-6 text-base rounded-md',
       icon: 'h-10 w-10 rounded-full',
     };
 

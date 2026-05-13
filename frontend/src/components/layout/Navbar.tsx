@@ -58,28 +58,28 @@ export const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 dark:bg-surface-50/80 backdrop-blur-md border-b border-gray-200 dark:border-white/10 h-16 flex items-center justify-between px-4 md:px-8">
+    <header className="sticky top-0 z-40 bg-white dark:bg-surface-800 border-b border-border-subtle dark:border-white/10 h-16 flex items-center justify-between px-4 md:px-8 shadow-xs dark:shadow-dark-xs">
       {/* Mobile Logo */}
-      <div className="md:hidden flex items-center gap-2">
-        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center text-white font-bold text-xl shadow-glow-sm">
+      <div className="md:hidden flex items-center gap-2 mr-2">
+        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center text-white font-display font-bold text-lg shadow-xs">
           V
         </div>
       </div>
 
-      {/* Desktop Search */}
-      <div className="hidden md:flex flex-1 max-w-md mx-auto">
+      {/* Search */}
+      <div className="md:flex flex-1 max-w-md mx-auto">
         <form className="relative w-full group" onSubmit={handleSearch}>
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Search
               size={18}
-              className="text-gray-400 dark:text-ink-faint group-focus-within:text-primary-500 transition-colors"
+              className="text-text-tertiary dark:text-text-tertiary group-focus-within:text-primary-600 transition-colors"
             />
           </div>
           <input
             type="text"
             value={searchValue}
             onChange={(event) => setSearchValue(event.target.value)}
-            className="block w-full pl-10 pr-3 py-2 rounded-full border-none bg-gray-100 dark:bg-surface-200 text-sm placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:ring-2 focus:ring-primary-500/50 transition-shadow focus:outline-none"
+            className="block w-full pl-11 pr-4 py-2.5 rounded-lg border border-border-subtle dark:border-white/10 bg-surface dark:bg-surface-700 text-sm text-text-primary dark:text-text-primary placeholder:text-text-tertiary dark:placeholder:text-text-tertiary focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all"
             placeholder="Search VibeConnect..."
             aria-label="Search VibeConnect"
           />
@@ -90,16 +90,16 @@ export const Navbar = () => {
       <div className="flex items-center gap-2 md:gap-4 ml-auto">
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none"
+          className="p-2 rounded-lg hover:bg-surface dark:hover:bg-surface-700 text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary transition-colors focus:outline-none"
           aria-label="Toggle theme"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
-        <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-surface-200 text-gray-600 dark:text-ink-muted hover:text-gray-900 dark:hover:text-ink transition-colors focus:outline-none">
+        <button className="relative p-2 rounded-lg hover:bg-surface dark:hover:bg-surface-700 text-text-secondary dark:text-text-secondary hover:text-text-primary dark:hover:text-text-primary transition-colors focus:outline-none">
           <Bell size={20} />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white dark:border-surface-50 rounded-full"></span>
+            <span className="absolute top-1 right-1 w-3 h-3 bg-red-600 border-2 border-white dark:border-surface-800 rounded-full"></span>
           )}
         </button>
 
@@ -107,7 +107,7 @@ export const Navbar = () => {
           <Dropdown
             align="right"
             trigger={
-              <div className="p-0.5 ml-2 cursor-pointer">
+              <div className="p-0.5 ml-2 cursor-pointer rounded-lg hover:bg-surface dark:hover:bg-surface-700 transition-colors">
                 <Avatar
                   src={user.profile?.avatar_url}
                   alt={user.username}
