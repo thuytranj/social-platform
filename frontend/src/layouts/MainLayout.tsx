@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
-import { RightMessagesPanel } from '../components/layout/RightMessagesPanel';
 import { MobileNav } from '../components/layout/MobileNav';
 import { ToastContainer } from '../components/ui/Toast';
 import { Navbar } from '../components/layout/Navbar';
@@ -19,9 +18,6 @@ export const MainLayout = () => {
           <Outlet />
         </main>
       </div>
-
-      {/* Desktop Right Messages Panel */}
-      <RightMessagesPanel />
 
       {/* Mobile Bottom Navigation */}
       <MobileNav />

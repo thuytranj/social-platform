@@ -113,7 +113,7 @@ export const VerifyOtp = () => {
               onChange={(e) => handleChange(index, e.target.value)}
               onKeyDown={(e) => handleKeyDown(index, e)}
               onPaste={handlePaste}
-              className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-border-base bg-surface-50 dark:bg-surface-200 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
+              className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-border-base bg-surface-50 dark:bg-surface-900 focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
             />
           ))}
         </div>

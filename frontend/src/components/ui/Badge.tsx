@@ -18,7 +18,7 @@ export const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
   ({ children, variant = 'default', size = 'md', className = '' }, ref) => {
     const variantClasses = {
       default:
-        'bg-surface-100 dark:bg-surface-200 text-text-primary dark:text-ink',
+        'bg-surface-100 dark:bg-surface-900 text-text-primary dark:text-ink',
       primary:
         'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
       secondary:

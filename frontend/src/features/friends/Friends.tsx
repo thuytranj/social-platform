@@ -20,7 +20,7 @@ export const Friends = () => {
         <h1 className="text-2xl font-display font-bold text-ink">Friends</h1>
       </div>
 
-      <div className="border-b border-border-base mb-6">
+      <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <nav className="flex gap-6 overflow-x-auto no-scrollbar">
           {(['friends', 'requests', 'sent', 'blocked'] as const).map((tab) => (
             <button
@@ -314,7 +314,7 @@ const ListSkeleton = () => (
 );
 
 const EmptyState = ({ message }: { message: string }) => (
-  <div className="text-center py-16 bg-white dark:bg-surface-50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
+  <div className="text-center py-16 bg-white dark:bg-surface-900/50 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed shadow-sm">
     <p className="text-ink-muted">{message}</p>
   </div>
 );

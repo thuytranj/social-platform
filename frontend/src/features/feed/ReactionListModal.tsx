@@ -68,7 +68,7 @@ export const ReactionListModal = ({ postId, isOpen, onClose }: Props) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}  title="Reactions" maxWidth="2xl">
-      <div className="-m-6 overflow-hidden rounded-[28px] bg-white dark:bg-surface-50">
+      <div className="-m-6 overflow-hidden rounded-[28px] bg-white dark:bg-surface-900">
         <div className="flex items-center justify-between gap-4 border-b border-gray-200 px-5 pt-4 dark:border-white/10 sm:px-6">
           <div className="flex min-w-max items-end gap-6">
             <button
@@ -114,7 +114,7 @@ export const ReactionListModal = ({ postId, isOpen, onClose }: Props) => {
               </button>
 
               {showMore && (
-                <div className="absolute left-0 top-full z-30 mt-2 w-52 rounded-[22px] border border-gray-200 bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-surface-50">
+                <div className="absolute left-0 top-full z-30 mt-2 w-52 rounded-[22px] border border-gray-200 bg-white p-2 shadow-[0_18px_50px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-surface-900/20">
                   {overflowTypes.map((type) => {
                     const config = REACTION_CONFIG[type];
                     const active = filter === type;
@@ -126,7 +126,7 @@ export const ReactionListModal = ({ postId, isOpen, onClose }: Props) => {
                           setFilter(type);
                           setShowMore(false);
                         }}
-                        className={`flex w-full items-center justify-between rounded-2xl px-3 py-2.5 transition-colors ${
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2.5 transition-colors ${
                           active
                             ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300'
                             : 'text-gray-700 hover:bg-gray-50 dark:text-ink-muted dark:hover:bg-white/5'
@@ -164,7 +164,7 @@ export const ReactionListModal = ({ postId, isOpen, onClose }: Props) => {
               {reactions.map((reaction) => (
                 <li
                   key={reaction.id}
-                  className="flex items-center gap-3 rounded-[22px] px-2 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
+                  className="flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-gray-50 dark:hover:bg-white/5"
                 >
                   <div className="relative shrink-0">
                     <Avatar

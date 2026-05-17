@@ -36,7 +36,14 @@ export enum ConversationType {
 export enum GroupRole {
   OWNER = 'owner',
   ADMIN = 'admin',
+  MODERATOR = 'moderator',
   MEMBER = 'member',
+}
+
+export enum GroupMemberStatus {
+  ACTIVE = 'active',
+  BANNED = 'banned',
+  PENDING = 'pending'
 }
 
 export enum Gender {
@@ -188,7 +195,7 @@ export interface Group {
   cover_url: string | null;
   cover_public_id: string | null;
   privacy: 'public' | 'private';
-  member_count: number;
+  members_count: number;
   creator_id: string;
   created_at: string;
   role?: GroupRole | 'pending';
@@ -199,6 +206,7 @@ export interface GroupMember {
   group_id: string;
   user_id: string;
   role: GroupRole;
+  status: GroupMemberStatus;
   joined_at: string;
   user: User;
 }

@@ -88,7 +88,7 @@ export const CommentSection = ({ postId, onClose }: CommentSectionProps) => {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-surface-200 text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+              className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-faint focus:outline-none focus:ring-2 focus:ring-primary-500/50"
               disabled={isPosting}
             />
             <Button

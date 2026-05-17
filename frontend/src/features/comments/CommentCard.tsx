@@ -82,7 +82,7 @@ export const CommentCard = ({ comment, postId }: CommentCardProps) => {
         />
       </Link>
       <div className="flex-1">
-        <div className="bg-gray-50 dark:bg-surface-200 rounded-2xl p-3 border border-gray-200 dark:border-white/10">
+        <div className="bg-gray-50 dark:bg-surface-900 rounded-2xl p-3 border border-gray-200 dark:border-white/10">
           <Link
             to={`/profile/${comment.author_id}`}
             className="font-semibold text-gray-900 dark:text-ink hover:underline text-sm"

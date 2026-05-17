@@ -229,14 +229,14 @@ export const Profile = () => {
             </div>
           </div>
 
-          <CardContent className="pt-14 sm:pt-16 pb-6">
+          <CardContent className="pt-14 sm:pt-16 pb-6 flex justify-between">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-4 flex-wrap">
                   <h1 className="text-2xl sm:text-3xl font-display font-bold text-text-primary dark:text-text-primary">
                     {user.profile?.full_name || user.username}
                   </h1>
-                  <span className="inline-flex items-center rounded-full bg-primary-50 dark:bg-primary-950/30 px-2.5 py-1 text-xs font-semibold text-primary-600 dark:text-primary-400">
+                  <span className="inline-flex items-center rounded-full bg-primary-50 dark:bg-primary-800/30 px-2.5 py-1 text-xs font-semibold text-primary-600 dark:text-primary-400">
                     Verified
                   </span>
                 </div>
@@ -267,7 +267,7 @@ export const Profile = () => {
                 <Button
                   onClick={() => setIsEditModalOpen(true)}
                   variant="secondary"
-                  className="gap-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+                  className="gap-2 !text-white !bg-primary-700 dark:hover:!bg-primary-800"
                 >
                   <Edit size={18} /> Edit Profile
                 </Button>
@@ -331,13 +331,16 @@ export const Profile = () => {
                 </>
               )}
             </div>
-
-            {user.profile?.bio && (
-              <p className="mt-5 max-w-3xl text-sm sm:text-[15px] leading-6 text-text-primary dark:text-text-primary whitespace-pre-wrap">
-                {user.profile.bio}
-              </p>
-            )}
           </CardContent>
+
+           <Tabs
+              tabs={tabs}
+              defaultValue="posts"
+              onChange={setActiveTab}
+              className="px-4 sm:px-6 pt-1"
+            >
+              {activeTab === 'posts' && null}
+            </Tabs>
         </Card>
 
         <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)] items-start">
@@ -379,7 +382,7 @@ export const Profile = () => {
                 {isOwnProfile && (
                   <Button
                     variant="secondary"
-                    className="w-full justify-center dark:bg-primary-700 dark:hover:bg-primary-600"
+                    className="w-full !text-white justify-center !bg-primary-700 dark:hover:!bg-primary-800"
                     onClick={() => setIsEditModalOpen(true)}
                   >
                     Edit Details
@@ -424,19 +427,6 @@ export const Profile = () => {
 
           {/* Main rail */}
           <div className="space-y-6">
-            <Card>
-              <CardContent className="p-0">
-                <Tabs
-                  tabs={tabs}
-                  defaultValue="posts"
-                  onChange={setActiveTab}
-                  className="px-4 sm:px-6 pt-1"
-                >
-                  {activeTab === 'posts' && null}
-                </Tabs>
-              </CardContent>
-            </Card>
-
             {activeTab === 'posts' && (
               <div className="space-y-6">
                 {postsStatus === 'pending' ? (

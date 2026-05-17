@@ -385,7 +385,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         isOpen={showComments}
         onClose={() => setShowComments(false)}
         title="Comments"
-        maxWidth="sm"
+        maxWidth="xl"
       >
         <CommentSection postId={post.id} />
       </Modal>

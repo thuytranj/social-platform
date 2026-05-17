@@ -9,7 +9,7 @@ export const Sidebar = () => {
   const { user } = useAuth();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 border-r border-border-subtle bg-white dark:border-white/10 dark:bg-surface-800 overflow-y-auto px-4 py-6 z-40">
+    <aside className="hidden md:flex flex-col w-1/4 h-screen sticky top-0 border-r border-border-subtle bg-white dark:border-white/10 dark:bg-surface-800 overflow-y-auto px-4 py-6 z-40">
       {/* Profile Card */}
       {user && (
         <Link
@@ -30,7 +30,7 @@ export const Sidebar = () => {
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Stats
           <div className="flex gap-6 w-full justify-around text-center pt-3 border-t border-border-subtle dark:border-white/10">
             <div>
               <p className="font-semibold text-text-primary dark:text-text-primary text-sm">
@@ -56,12 +56,12 @@ export const Sidebar = () => {
                 Posts
               </p>
             </div>
-          </div>
+          </div> */}
         </Link>
       )}
 
       {/* Navigation Menu */}
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 py-4 space-y-2 border-t border-border-subtle dark:border-white/10">
         {NAV_ROUTES.map((route) => {
           const Icon = Icons[
             route.icon as keyof typeof Icons
@@ -105,19 +105,7 @@ export const Sidebar = () => {
 
       {/* Footer */}
       <div className="mt-auto pt-4 border-t border-border-subtle dark:border-white/10 space-y-2 text-xs text-text-tertiary dark:text-text-tertiary">
-        <a
-          href="#"
-          className="block hover:text-text-secondary transition-colors"
-        >
-          Privacy Terms
-        </a>
-        <a
-          href="#"
-          className="block hover:text-text-secondary transition-colors"
-        >
-          Advertising
-        </a>
-        <p className="text-xs text-text-tertiary pt-2">© 2024 VibeConnect</p>
+        <p className="text-xs text-text-tertiary pt-2">© 2026 VibeConnect</p>
       </div>
     </aside>
   );

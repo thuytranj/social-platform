@@ -3,14 +3,15 @@
  * Reusable utility classes, helper functions, and design patterns
  */
 
+import type { ReactNode } from 'react';
 import { colors, borderRadius, spacing, shadows, typography } from './design-tokens';
 
 /**
  * Color utilities - for dynamic color usage in components
  */
 export const colorUtils = {
-  getPrimaryColor: (shade: string = '600') => colors.primary[shade as keyof typeof colors.primary],
-  getSecondarColor: (shade: string = '600') => colors.secondary[shade as keyof typeof colors.secondary],
+  getPrimaryColor: (shade: keyof typeof colors.primary = 600 as any) => colors.primary[shade],
+  getSecondarColor: (shade: keyof typeof colors.secondary = 600 as any) => colors.secondary[shade],
   getStatusColor: (status: 'success' | 'error' | 'warning' | 'info') => {
     const statusColors = {
       success: '#28a745',
@@ -42,7 +43,7 @@ export const commonClasses = {
 
   // Buttons
   buttonPrimary: 'bg-primary-600 hover:bg-primary-700 text-white shadow-xs transition-colors',
-  buttonSecondary: 'bg-surface-100 dark:bg-surface-200 text-ink hover:bg-surface-200 dark:hover:bg-surface-300 transition-colors',
+  buttonSecondary: 'bg-surface-100 dark:bg-surface-900 text-ink hover:bg-surface-200 dark:hover:bg-surface-300 transition-colors',
   buttonOutline: 'border border-border-variant bg-white dark:bg-surface-50 text-ink hover:bg-surface-100 dark:hover:bg-surface-200 transition-colors',
   buttonGhost: 'text-ink-muted hover:bg-surface-100 dark:hover:bg-surface-200 transition-colors',
 
@@ -142,7 +143,7 @@ export const patterns = {
   /**
    * Empty state pattern
    */
-  emptyState: (message: string, icon?: React.ReactNode) => ({
+  emptyState: (message: string, icon?: ReactNode) => ({
     className: 'text-center py-12 bg-surface-100 dark:bg-surface-200 rounded-2xl border border-border-variant border-dashed',
     render: (
       <div className="flex flex-col items-center gap-3">

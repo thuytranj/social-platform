@@ -127,16 +127,29 @@ export class GroupsService {
     }
   }
 
-  async findOneById(id: string, manager?: EntityManager) {
+  async findOneById(id: string, manager?: EntityManager, userId?: string) {
     const groupRepository = this.getGroupRepository(manager);
 
     const group = await groupRepository.findOne({
       where: { id },
       relations: ['creator'],
     });
-    return plainToInstance(GroupResponseDto, group, {
-      excludeExtraneousValues: true,
-    });
+
+    let groupMember: GroupMember | null = null;
+    if (userId) {
+      const groupMemberRepository = this.getGroupMemberRepository(manager);
+      groupMember = await groupMemberRepository.findOne({
+        where: { group_id: id, user_id: userId },
+      });
+    }
+
+    return {
+      ... plainToInstance(GroupResponseDto, group, {
+        excludeExtraneousValues: true,
+      }),
+      role: groupMember?.role || null,
+      status: groupMember?.status || null,
+    }
   }
 
   async findAllGroupsByUserId(
@@ -152,6 +165,7 @@ export class GroupsService {
       .createQueryBuilder('group_members')
       .select('group_members.group_id', 'group_id')
       .addSelect('group_members.joined_at', 'joined_at')
+      .addSelect('group_members.role', 'role')
       .where('group_members.user_id = :userId', { userId })
       .andWhere('group_members.status = :status', {
         status: GroupMemberStatus.ACTIVE,
@@ -191,16 +205,25 @@ export class GroupsService {
     }
 
     const groupIds = idsResult.map((item) => item.group_id);
+    const hm = new Map<string, GroupRole>();
+    idsResult.forEach((item) => {
+      hm.set(item.group_id, item.role);
+    })
 
     const groups = await groupRepository.createQueryBuilder('groups')
       .leftJoinAndSelect('groups.creator', 'creator')
       .where('groups.id IN (:...groupIds)', { groupIds })
-      .orderBy(`array_position(ARRAY[:...groupIds]::uuid[], groups.id)`)
+      .orderBy(`array_position(ARRAY[:...groupIds]::uuid[], groups.id)`) 
       .getMany();
 
     return {
-      groups: plainToInstance(GroupResponseDto, groups, {
-        excludeExtraneousValues: true,
+      groups: groups.map(group => {
+        return {
+          ...plainToInstance(GroupResponseDto, group, {
+            excludeExtraneousValues: true,
+          }),
+          role: hm.get(group.id),
+        };
       }),
       nextCursor,
     };

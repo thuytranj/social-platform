@@ -27,7 +27,7 @@ export const Notifications = () => {
 
       <div className="space-y-2">
         {notifications.length === 0 ? (
-          <div className="text-center py-20 bg-gray-100 dark:bg-surface-200 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed">
+          <div className="text-center py-20 bg-gray-100 dark:bg-surface-900 rounded-2xl border border-gray-200 dark:border-white/10 border-dashed">
             <Bell
               size={48}
               className="mx-auto mb-4 text-gray-400 dark:text-ink-muted"

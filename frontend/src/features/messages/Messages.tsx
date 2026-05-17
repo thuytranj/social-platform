@@ -99,7 +99,7 @@ const ConversationList = ({
           <input
             type="text"
             placeholder="Search messages..."
-            className="w-full bg-gray-100 dark:bg-surface-200 pl-10 pr-4 py-2 rounded-xl text-sm text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+            className="w-full bg-gray-100 dark:bg-surface-900 pl-10 pr-4 py-2 rounded-xl text-sm text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           />
         </div>
       </div>
@@ -299,7 +299,7 @@ const ChatArea = ({
                   className={`px-4 py-2.5 rounded-2xl text-[15px] ${
                     isMine
                       ? 'bg-gradient-to-br from-primary-600 to-accent-500 text-white rounded-br-sm shadow-sm shadow-primary-500/20'
-                      : 'bg-white dark:bg-surface-200 text-ink rounded-bl-sm border border-border-base shadow-sm'
+                      : 'bg-white dark:bg-surface-900 text-ink rounded-bl-sm border border-border-base shadow-sm'
                   }`}
                 >
                   {msg.content}
@@ -331,7 +331,7 @@ const ChatArea = ({
             value={inputMsg}
             onChange={(e) => setInputMsg(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-gray-100 dark:bg-surface-200 border-none rounded-full px-4 py-2.5 text-[15px] text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+            className="flex-1 bg-gray-100 dark:bg-surface-900 border-none rounded-full px-4 py-2.5 text-[15px] text-gray-900 dark:text-ink placeholder:text-gray-500 dark:placeholder:text-ink-muted focus:outline-none focus:ring-2 focus:ring-primary-500/50"
           />
           <button
             type="submit"

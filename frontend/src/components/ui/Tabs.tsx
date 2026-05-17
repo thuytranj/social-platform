@@ -36,7 +36,7 @@ export const Tabs = ({
   return (
     <div className={className}>
       <div
-        className={`flex gap-6 border-b border-border-variant dark:border-white/10  overflow-x-auto ${
+        className={`flex gap-6 border-t border-border-variant dark:border-white/10  overflow-x-auto ${
           fullWidth ? 'gap-0' : 'gap-6'
         } no-scrollbar`}
       >

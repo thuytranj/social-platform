@@ -36,8 +36,8 @@ export class GroupsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.groupsService.findOneById(id);
+  findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
+    return this.groupsService.findOneById(id, undefined, req.user.sub);
   }
 
   @Get(':groupId/members')

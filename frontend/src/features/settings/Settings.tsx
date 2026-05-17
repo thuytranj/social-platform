@@ -107,13 +107,13 @@ export const Settings = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-ink-muted block mb-1">Email</label>
-                  <div className="px-4 py-2.5 bg-surface-50 dark:bg-surface-200 rounded-xl text-ink">
+                  <div className="px-4 py-2.5 bg-surface-50 dark:bg-surface-900 rounded-xl text-ink">
                     {user?.email}
                   </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-ink-muted block mb-1">Username</label>
-                  <div className="px-4 py-2.5 bg-surface-50 dark:bg-surface-200 rounded-xl text-ink">
+                  <div className="px-4 py-2.5 bg-surface-50 dark:bg-surface-900 rounded-xl text-ink">
                     @{user?.username}
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export const Settings = () => {
             <div className="card p-6">
               <h2 className="text-lg font-semibold text-ink mb-6">Appearance</h2>
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-200 rounded-xl">
+                <div className="flex items-center justify-between p-4 bg-surface-50 dark:bg-surface-900 rounded-xl">
                   <div>
                     <h3 className="font-medium text-ink">Dark Mode</h3>
                     <p className="text-sm text-ink-muted">Toggle between light and dark themes</p>
@@ -189,7 +189,7 @@ export const Settings = () => {
                   </div>
                 </form>
               ) : (
-                <div className="p-4 bg-surface-50 dark:bg-surface-200 rounded-xl">
+                <div className="p-4 bg-surface-50 dark:bg-surface-900 rounded-xl">
                   <p className="text-ink-muted text-sm">
                     You signed in using {user.provider}. Password changes are managed through your provider.
                   </p>

@@ -1,6 +1,6 @@
 import { MessageCircle, Calendar, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Avatar } from '../ui/Avatar';
+import { Avatar } from '../../components/ui/Avatar';
 
 interface Message {
   id: string;
@@ -97,7 +97,7 @@ export const RightMessagesPanel = () => {
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-white dark:bg-surface-800 border-l border-border-subtle dark:border-white/10 overflow-y-auto z-30\">
+    <aside className="hidden md:flex flex-col w-2/5 max-w-md min-w-50 h-screen sticky top-0 bg-white dark:bg-surface-800 border border-border-subtle dark:border-white/10 overflow-y-auto z-30 rounded-xl">
       {/* Messages Section */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="sticky top-0 bg-white dark:bg-surface-800 border-b border-border-subtle dark:border-white/10 px-6 py-4 z-10">
