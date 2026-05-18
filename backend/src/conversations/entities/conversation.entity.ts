@@ -1,4 +1,4 @@
-import { BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn } from "typeorm";
+import { BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn, UpdateDateColumn, Index, ManyToOne, JoinColumn, Unique } from "typeorm";
 import {v7 as uuidv7} from 'uuid'
 import { Message } from "./message.entity";
 import { ConversationMember } from "./conversation-member.entity";
@@ -10,6 +10,7 @@ export enum ConversationType {
 }
 
 @Index(['last_message_time', 'id'])
+@Unique(['private_key'])
 @Entity('conversations')
 export class Conversation {
   @PrimaryColumn('uuid')
@@ -40,6 +41,10 @@ export class Conversation {
   @Index()
   @Column()
   creator_id: string
+
+  @Index()
+  @Column({nullable: true})
+  private_key?: string
   
   @CreateDateColumn()
   created_at: Date
