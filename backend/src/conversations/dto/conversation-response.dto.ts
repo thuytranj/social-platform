@@ -1,6 +1,7 @@
 import { ConversationType } from "../entities/conversation.entity";
 import { Exclude, Expose, Type } from "class-transformer";
 import { MessageResponseDto } from "./message-response.dto";
+import { UserResponseDto } from "@/users/dto/user-response.dto";
 
 @Exclude()
 export class ConversationResponseDto {
@@ -25,4 +26,8 @@ export class ConversationResponseDto {
 
   @Expose()
   last_message_time: string
+
+  @Expose()
+  @Type(() => UserResponseDto)
+  creator: UserResponseDto
 }

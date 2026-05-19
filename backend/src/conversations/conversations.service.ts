@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -40,7 +40,7 @@ export class ConversationsService {
       return this.dataSource.transaction(async (transactionManager) => {
         const conversationRepo = this.getConversationRepository(transactionManager);
         
-        if (createConversationDto.type === ConversationType.PRIVATE && createConversationDto.member_ids.length > 1) {
+        if (createConversationDto.type === ConversationType.PRIVATE && createConversationDto.member_ids.length !== 1) {
           throw new BadRequestException('Private conversation must have exactly 2 members')
         }
 
@@ -110,7 +110,6 @@ export class ConversationsService {
     }
     
     const idsResult = await queryBuilder.getMany()
-    console.log('idsResult', idsResult);
     if (idsResult.length===0) return {data: [], nextCursor: null}
     
     let nextCursor: string | null = null;
@@ -128,29 +127,70 @@ export class ConversationsService {
     }
 
     const conversations = await conversationRepo.createQueryBuilder('conversations')
+      .leftJoin('conversations.members', 'members')
+      .addSelect(['members.unread_count'])
       .leftJoinAndSelect('conversations.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
       .leftJoinAndSelect('sender.profile', 'sender_profile')
       .where('conversations.id IN (:...ids)', { ids: idsResult.map((conversation) => conversation.id) })
+      .andWhere('members.user_id = :userId', { userId })
       .orderBy('array_position(ARRAY[:...ids]::uuid[], conversations.id)')
       .getMany()
     
     return {
-      data: conversations.map(conversation => plainToInstance(ConversationResponseDto, conversation, { excludeExtraneousValues: true })),
+      data: conversations.map(conversation => plainToInstance(ConversationResponseDto, {...conversation, unread_count: conversation.members[0].unread_count}, { excludeExtraneousValues: true })),
       nextCursor
     }
+  }
+
+  async getConversation(conversationId: string, userId: string) {
+    const conversationRepo = this.getConversationRepository()
+    const isMember = await this.conversationMemberService.getOne(conversationId, userId)
+    if (!isMember) throw new BadRequestException('You are not a member of this conversation')
     
+    const conversation = await conversationRepo.createQueryBuilder('conversations')
+      .leftJoinAndSelect('conversations.creator', 'creator')
+      .leftJoinAndSelect('creator.profile', 'creator_profile')
+      .where('conversations.id = :conversationId', { conversationId })
+      .getOne()
+    
+    return plainToInstance(ConversationResponseDto, conversation, { excludeExtraneousValues: true })
+  } 
+
+  async update(id: string, userId: string, updateConversationDto: UpdateConversationDto, file?: Express.Multer.File) {
+    return this.dataSource.transaction(async (transactionManager) => {
+      const conversationRepo = this.getConversationRepository(transactionManager)
+      const isMember = await this.conversationMemberService.getOne(id, userId, transactionManager)
+
+      if (isMember?.role !== ConversationMemberRole.OWNER) {
+        throw new BadRequestException('You are not authorized to update this conversation')
+      }
+
+      const conversation = await conversationRepo.findOne({where: {id}})
+      if (!conversation) throw new BadRequestException('Conversation not found')
+
+      if (file) {
+        if (conversation.thumbnail_public_url) await this.cloudinaryService.deleteFile(conversation.thumbnail_public_url, 'image')
+        const uploadMedia = await this.cloudinaryService.uploadFile(file, Folder.CONVERSATION_AVATARS)
+        conversation.thumbnail_url = uploadMedia.secure_url
+        conversation.thumbnail_public_url = uploadMedia.public_id
+      }
+
+      if (updateConversationDto.title) conversation.title = updateConversationDto.title
+      
+      return await conversationRepo.save(conversation)
+    })
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
-  }
-
-  update(id: number, updateConversationDto: UpdateConversationDto) {
-    return `This action updates a #${id} conversation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} conversation`;
+  async remove(userId: string, conversationId: string) {
+    const conversationRepo = this.getConversationRepository()
+    const isMember = await this.conversationMemberService.getOne(conversationId, userId)
+    if (!isMember) throw new BadRequestException('You are not a member of this conversation')
+    
+    if (isMember.role !== ConversationMemberRole.OWNER) {
+      throw new BadRequestException('You are not authorized to remove this conversation')
+    }
+    
+    return await conversationRepo.delete(conversationId)
   }
 }

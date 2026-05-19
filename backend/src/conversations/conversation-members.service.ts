@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { DataSource, EntityManager, Repository, } from "typeorm";
-import { ConversationMember } from "./entities/conversation-member.entity";
+import { ConversationMember, ConversationMemberRole } from "./entities/conversation-member.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { CloudinaryService } from "@/integrations/cloudinary.service";
 import { CreateConversationMemberDto } from "./dto/create-conversation-member.dto";
@@ -136,12 +136,118 @@ export class ConversationMembersService {
     };
   }
 
-
-  findOne(id: number) {
-    return `This action returns a #${id} conversation`;
+  async getOne(conversationId: string, userId: string, manager?: EntityManager) {
+    const conversationMembersRepo = this.getConversationMemberRepository(manager);
+    return await conversationMembersRepo.findOne({
+      where: {
+        conversation_id: conversationId,
+        user_id: userId
+      },
+    })
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} conversation`;
+  async addMember(conversationId: string, userId: string, memberId: string) {
+    return this.dataSource.transaction(async (manager) => {
+      const conversationMembersRepo = this.getConversationMemberRepository(manager);
+      
+      const isOwner = await conversationMembersRepo.findOne({
+        where: {
+          conversation_id: conversationId,
+          user_id: userId,
+          role: ConversationMemberRole.OWNER
+        },
+        relations: ['conversation']
+      })
+      if (!isOwner || isOwner.conversation.type !== ConversationType.GROUP) {
+        throw new BadRequestException('You do not have permission to add member to this group.');
+      }
+
+      return await this.create({conversation_id: conversationId, user_id: memberId, role: ConversationMemberRole.MEMBER}, manager);
+    })
+  }
+
+  async removeMember(conversationId: string, userId: string, memberId: string) {
+    return this.dataSource.transaction(async (manager) => {
+      const conversationMembersRepo = this.getConversationMemberRepository(manager);
+      
+      if (userId === memberId) {
+        throw new BadRequestException('You cannot remove yourself from this group.');
+      }
+
+      const isOwner = await conversationMembersRepo.findOne({
+        where: {
+          conversation_id: conversationId,
+          user_id: userId,
+          role: ConversationMemberRole.OWNER
+        },
+        relations: ['conversation']
+      })
+      if (!isOwner || isOwner.conversation.type !== ConversationType.GROUP) {
+        throw new BadRequestException('You do not have permission to remove member from this group.');
+      }
+
+      return await conversationMembersRepo.delete({
+        conversation_id: conversationId,
+        user_id: memberId
+      });
+    })
+  }
+
+  async transferOwnership(conversationId: string, currentOwnerId: string, newOwnerId: string) {
+    return this.dataSource.transaction(async (manager) => {
+      const conversationMembersRepo = this.getConversationMemberRepository(manager);
+      
+      const isOwner = await conversationMembersRepo.findOne({
+        where: {
+          conversation_id: conversationId,
+          user_id: currentOwnerId,
+          role: ConversationMemberRole.OWNER
+        },
+        relations: ['conversation']
+      })
+      if (!isOwner || isOwner.conversation.type !== ConversationType.GROUP) {
+        console.log(isOwner)
+        console.log(isOwner?.conversation.type)
+        throw new BadRequestException('You do not have permission to transfer ownership of this group.');
+      }
+
+      await conversationMembersRepo.update({
+        conversation_id: conversationId,
+        user_id: currentOwnerId
+      }, { role: ConversationMemberRole.MEMBER });
+
+      return await conversationMembersRepo.update({
+        conversation_id: conversationId,
+        user_id: newOwnerId
+      }, { role: ConversationMemberRole.OWNER });
+    })
+  }
+
+  async leaveConversation(conversationId: string, userId: string) {
+    const conversationMemberRepo = this.getConversationMemberRepository();
+
+    const member = await conversationMemberRepo.findOne({
+      where: {
+        conversation_id: conversationId,
+        user_id: userId
+      },
+      relations: ['conversation']
+    })
+    if (!member) {
+      throw new BadRequestException('You are not a member of this group/conversation.');
+    }
+
+    if (member.conversation.type !== ConversationType.GROUP) {
+      throw new BadRequestException('Conversation is not a group.');
+    }
+
+    if (member.role === ConversationMemberRole.OWNER) {
+      throw new BadRequestException('You must transfer the ownership of this group to another member before leaving.');
+    }
+
+    return await conversationMemberRepo.delete({
+      conversation_id: conversationId,
+      user_id: userId
+    });
   }
 }

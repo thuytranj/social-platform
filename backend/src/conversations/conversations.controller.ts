@@ -46,6 +46,24 @@ export class ConversationsController {
     return this.conversationsService.create(createConversationDto, req.user.sub);
   }
 
+  @Post(':conversationId/members')
+  addMember(
+    @Param('conversationId') conversationId: string,
+    @Body() body: {userId: string},
+    @Req() req,
+  ) {
+    return this.conversationMembersService.addMember(conversationId, req.user.sub, body.userId);
+  }
+
+  @Delete(':conversationId/members/:memberId')
+  removeMember(
+    @Param('conversationId') conversationId: string,
+    @Param('memberId') memberId: string,
+    @Req() req,
+  ) {
+    return this.conversationMembersService.removeMember(conversationId, req.user.sub, memberId);
+  }
+
   @Get(':conversationId/members')
   getConversationMembers(
     @Query('limit') limit: number = 20,
@@ -53,6 +71,14 @@ export class ConversationsController {
     @Param('conversationId') conversationId: string
   ) {
     return this.conversationMembersService.getMembers(conversationId, limit, cursor);
+  }
+
+  @Get(':conversationId')
+  getOne(
+    @Param('conversationId') id: string,
+    @Req() req
+  ) {
+    return this.conversationsService.getConversation(id, req.user.sub);
   }
 
   @Get()
@@ -64,18 +90,52 @@ export class ConversationsController {
     return this.conversationsService.getConversations(req.user.sub, limit, cursor);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.conversationsService.findOne(+id);
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024,
+    },
+    fileFilter: (req, file, cb) => {
+      if (
+        !file.mimetype.startsWith('image/')
+      ) {
+        return cb(new BadRequestException('Unsupported file type'), false);
+      }
+      cb(null, true);
+    },
+  }))
+  update(
+    @Param('conversationId') id: string, 
+    @Body() updateConversationDto: UpdateConversationDto, 
+    @Req() req,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.conversationsService.update(id, req.user.sub, updateConversationDto, file);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateConversationDto: UpdateConversationDto) {
-    return this.conversationsService.update(+id, updateConversationDto);
+  @Patch(':id/transfer-ownership')
+  transferOwnership(
+    @Param('id') conversationId: string,
+    @Body() body: {userId: string},
+    @Req() req,
+  ) {
+    return this.conversationMembersService.transferOwnership(conversationId, req.user.sub, body.userId);
+  }
+
+  @Delete(':id/leave')
+  leaveConversation(
+    @Param('id') id: string,
+    @Req() req,
+  ) {
+    return this.conversationMembersService.leaveConversation(id, req.user.sub);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.conversationsService.remove(+id);
+  remove(
+    @Param('id') conversationId: string,
+    @Req() req,
+  ) {
+    return this.conversationsService.remove(req.user.sub, conversationId);
   }
 }
