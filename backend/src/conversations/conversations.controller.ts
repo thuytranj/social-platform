@@ -52,7 +52,16 @@ export class ConversationsController {
     @Query('cursor') cursor: string,
     @Param('conversationId') conversationId: string
   ) {
-    return this.conversationMembersService.getAllMembers(conversationId, limit, cursor);
+    return this.conversationMembersService.getMembers(conversationId, limit, cursor);
+  }
+
+  @Get()
+  getConversations(
+    @Query('limit') limit: number = 20,
+    @Query('cursor') cursor: string,
+    @Req() req
+  ) {
+    return this.conversationsService.getConversations(req.user.sub, limit, cursor);
   }
 
   @Get(':id')

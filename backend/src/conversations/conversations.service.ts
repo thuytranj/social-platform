@@ -9,6 +9,8 @@ import { Folder } from '@/common/constants/constants';
 import { ConversationMembersService } from './conversation-members.service';
 import { CreateConversationMemberDto } from './dto/create-conversation-member.dto';
 import { ConversationMemberRole } from './entities/conversation-member.entity';
+import { ConversationResponseDto } from './dto/conversation-response.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class ConversationsService {
@@ -54,6 +56,7 @@ export class ConversationsService {
           thumbnail_url: uploadMedia?.secure_url,
           thumbnail_public_url: uploadMedia?.public_id,
           private_key: createConversationDto.type === ConversationType.PRIVATE ? privateKey : undefined,
+          last_message_time: new Date(),
         })
 
         const savedConversation = await conversationRepo.save(conversation);
@@ -67,6 +70,8 @@ export class ConversationsService {
           return this.conversationMemberService.create(createConversationMemberDto, transactionManager)
         })
         await Promise.all(memberPromises);
+
+        await this.conversationMemberService.create({conversation_id: savedConversation.id, user_id: creatorId, role: ConversationMemberRole.OWNER}, transactionManager)
 
         return savedConversation;
       });
@@ -85,8 +90,56 @@ export class ConversationsService {
     return conversation;
   } 
 
-  findAll() {
-    return `This action returns all conversations`;
+  async getConversations(userId: string, limit: number = 20, cursor?: string) {
+    const conversationRepo = this.getConversationRepository()
+
+    const queryBuilder = conversationRepo.createQueryBuilder('conversations')
+      .select(['conversations.id', 'conversations.last_message_time'])
+      .innerJoin('conversations.members', 'members')
+      .where('members.user_id = :userId', { userId })
+      .orderBy('conversations.last_message_time', 'DESC')
+      .addOrderBy('conversations.id', 'DESC')
+      .limit(limit + 1);
+    
+    if (cursor) {
+      const { last_message_time, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf8')) as { last_message_time: string, id: string };
+      queryBuilder.andWhere(
+        `(conversations.last_message_time < :last_message_time OR (conversations.last_message_time = :last_message_time AND conversations.id < :id))`,
+        { last_message_time, id }
+      );
+    }
+    
+    const idsResult = await queryBuilder.getMany()
+    console.log('idsResult', idsResult);
+    if (idsResult.length===0) return {data: [], nextCursor: null}
+    
+    let nextCursor: string | null = null;
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const lastReturnedConversation = idsResult[idsResult.length - 1];
+      if (lastReturnedConversation) {
+        nextCursor = Buffer.from(
+          JSON.stringify({
+            last_message_time: lastReturnedConversation.last_message_time,
+            id: lastReturnedConversation.id,
+          }),
+        ).toString('base64');
+      }
+    }
+
+    const conversations = await conversationRepo.createQueryBuilder('conversations')
+      .leftJoinAndSelect('conversations.last_message', 'last_message')
+      .leftJoinAndSelect('last_message.sender', 'sender')
+      .leftJoinAndSelect('sender.profile', 'sender_profile')
+      .where('conversations.id IN (:...ids)', { ids: idsResult.map((conversation) => conversation.id) })
+      .orderBy('array_position(ARRAY[:...ids]::uuid[], conversations.id)')
+      .getMany()
+    
+    return {
+      data: conversations.map(conversation => plainToInstance(ConversationResponseDto, conversation, { excludeExtraneousValues: true })),
+      nextCursor
+    }
+    
   }
 
   findOne(id: number) {

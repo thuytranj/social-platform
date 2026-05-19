@@ -54,37 +54,32 @@ export class ConversationMembersService {
     })
   }
 
-  async getAllMembers(
+  async getMembers(
     conversationId: string,
     limit: number = 20,
     cursor?: string,
   ) {
     const idsQueryBuilder = this.conversationMemberRepository
       .createQueryBuilder('conversation_members')
-      .select('conversation_members.user_id', 'user_id')
-      .addSelect('conversation_members.joined_at', 'joined_at')
+      .select('conversation_members.id', 'id')
+      .addSelect('conversation_members.user_id', 'user_id')
       .where(
         'conversation_members.conversation_id = :conversationId',
         { conversationId },
       )
-      .orderBy('conversation_members.joined_at', 'DESC')
-      .addOrderBy('conversation_members.user_id', 'DESC')
+      .orderBy('conversation_members.id', 'DESC')
       .limit(limit + 1);
 
     if (cursor) {
-      const { user_id, joined_at } = JSON.parse(
+      const { id } = JSON.parse(
         Buffer.from(cursor, 'base64').toString('utf-8'),
       );
 
-      console.log('User ID:', user_id);
-      console.log('Joined at:', joined_at);
-
       idsQueryBuilder.andWhere(
-        `(conversation_members.joined_at, conversation_members.user_id)
-        < (:joined_at, :user_id)`,
+        `(conversation_members.id)
+        < (:id)`,
         {
-          joined_at,
-          user_id,
+          id,
         },
       );
     }
@@ -102,19 +97,15 @@ export class ConversationMembersService {
 
     if (idsResult.length > limit) {
       idsResult.pop();
-    }
+      const lastReturnedMember = idsResult[idsResult.length - 1];
 
-    const lastReturnedMember = idsResult[idsResult.length - 1];
-
-    if (lastReturnedMember) {
-      nextCursor = Buffer.from(
-        JSON.stringify({
-          user_id: lastReturnedMember.user_id,
-          joined_at: new Date(
-            lastReturnedMember.joined_at,
-          ).toISOString(),
-        }),
-      ).toString('base64');
+      if (lastReturnedMember) {
+        nextCursor = Buffer.from(
+          JSON.stringify({
+            id: lastReturnedMember.id,
+          }),
+        ).toString('base64');
+      }
     }
 
     const userIds = idsResult.map((member) => member.user_id);
@@ -144,6 +135,7 @@ export class ConversationMembersService {
       nextCursor,
     };
   }
+
 
   findOne(id: number) {
     return `This action returns a #${id} conversation`;
