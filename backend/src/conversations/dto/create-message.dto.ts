@@ -6,9 +6,6 @@ export class CreateMessageDto {
   conversation_id: string
 
   @IsString()
-  sender_id: string
-
-  @IsString()
   @IsOptional()
   reply_message_id?: string
 

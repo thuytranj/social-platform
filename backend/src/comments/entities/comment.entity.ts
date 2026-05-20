@@ -1,6 +1,7 @@
 import { Post } from "@/posts/entities/post.entity";
 import { User } from "@/users/entities/user.entity";
 import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { File } from "@/supabase/entities/file.entity";
 
 @Entity('comments')
 @Index(['post_id', 'created_at'])
@@ -46,5 +47,8 @@ export class Comment {
   @ManyToOne(() => Comment, (comment) => comment.replies, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'parent_id' })
   parent?: Comment;
+
+  @OneToMany(() => File, (file) => file.comment, { onDelete: 'CASCADE' })
+  files!: File[];
 }
 

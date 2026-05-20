@@ -250,4 +250,14 @@ export class ConversationMembersService {
       user_id: userId
     });
   }
+
+  async checkIsMember(conversationId: string, userId: string) {
+    const conversationMemberRepo = this.getConversationMemberRepository();
+    return await conversationMemberRepo.findOne({
+      where: {
+        conversation_id: conversationId,
+        user_id: userId
+      }
+    })
+  }
 }

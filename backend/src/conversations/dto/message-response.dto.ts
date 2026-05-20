@@ -1,6 +1,8 @@
 import { Exclude, Expose, Type } from "class-transformer";
 import { MessageType } from "../entities/message.entity";
 import { UserResponseDto } from "@/users/dto/user-response.dto";
+import { MediaResponseDto } from "@/medias/entities/media-reponse.dto";
+import { FileResponseDto } from "@/supabase/dto/file-response.dto";
 
 export class MessageResponseDto {
   @Expose()
@@ -22,6 +24,14 @@ export class MessageResponseDto {
 
   @Expose()
   content?: string;
+
+  @Expose()
+  @Type(() => MediaResponseDto)
+  medias: MediaResponseDto[];
+
+  @Expose()
+  @Type(() => FileResponseDto)
+  files: FileResponseDto[];
 
   @Expose()
   @Type(() => Date)

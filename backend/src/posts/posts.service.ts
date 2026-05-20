@@ -20,7 +20,6 @@ import {
   ReactionTargetType,
 } from '@/reactions/entities/reaction.entity';
 import { Folder } from '@/common/constants/constants';
-import { isDefined } from 'class-validator';
 
 @Injectable()
 export class PostsService {

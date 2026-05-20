@@ -4,11 +4,11 @@ import { Conversation } from "./conversation.entity";
 import { User } from "@/users/entities/user.entity";
 import { Message_Media } from "./message-medias.entity";
 import { ConversationMember } from "./conversation-member.entity";
+import { File } from "@/supabase/entities/file.entity";
 
 export enum MessageType {
   TEXT = 'text',
-  MEDIA = 'media',
-  FILE = 'file',
+  REVOKED = 'revoked',
   SYSTEM = 'system'
 }
 
@@ -84,4 +84,7 @@ export class Message {
 
   @OneToMany(() => ConversationMember, (conversation_member) => conversation_member.last_read_message)
   last_read_message?: ConversationMember[];
+
+  @OneToMany(() => File, (file) => file.message)
+  files: File[];
 }

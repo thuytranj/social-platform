@@ -128,6 +128,8 @@ export class AuthService {
         sub: user.id,
         email: user.email,
         username: user.username,
+        fullName: user.profile?.full_name,
+        avatar: user.profile?.avatar_url
       };
 
       const [access_token, refresh_token] = await Promise.all([
@@ -246,7 +248,7 @@ export class AuthService {
         manager,
       );
 
-      let finalUser: Pick<User, 'id' | 'email' | 'username'>;
+      let finalUser;
 
       if (existingUser) {
         if (
@@ -312,6 +314,8 @@ export class AuthService {
         sub: finalUser.id,
         email: finalUser.email,
         username: finalUser.username,
+        fullName: finalUser.profile?.full_name,
+        avatar: finalUser.profile?.avatar_url,
       };
 
       const [access_token, refresh_token] = await Promise.all([

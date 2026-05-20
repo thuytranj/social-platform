@@ -6,13 +6,15 @@ import { JwtAuthGuard } from '@/auth/guards/jwt-auth-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConversationMembersService } from './conversation-members.service';
+import { MessagesService } from './messages.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('conversations')
 export class ConversationsController {
   constructor(
     private readonly conversationsService: ConversationsService,
-    private readonly conversationMembersService: ConversationMembersService
+    private readonly conversationMembersService: ConversationMembersService,
+    private readonly messagesService: MessagesService,
   ) {}
 
   @Post('group')
@@ -71,6 +73,16 @@ export class ConversationsController {
     @Param('conversationId') conversationId: string
   ) {
     return this.conversationMembersService.getMembers(conversationId, limit, cursor);
+  }
+
+  @Get(':conversationId/messages')
+  getMessages(
+    @Param('conversationId') conversationId: string,
+    @Query('limit') limit: number = 20,
+    @Query('cursor') cursor: string,
+    @Req() req
+  ) {
+    return this.messagesService.getMessages(conversationId, req.user.sub, limit, cursor);
   }
 
   @Get(':conversationId')
