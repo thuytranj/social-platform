@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { ConversationsController } from './conversations.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,6 +17,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConversationGateway } from './conversation.gateway';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import type { StringValue } from 'ms';
+import { ReactionsModule } from '@/reactions/reactions.module';
 
 const parseExpiresIn = (value?: string): number | StringValue | undefined => {
   if (!value) {
@@ -30,8 +31,9 @@ const parseExpiresIn = (value?: string): number | StringValue | undefined => {
   imports: [
     TypeOrmModule.forFeature([Conversation, ConversationMember, Message, Message_Media, Media]),
     MediasModule,
-    UsersModule,
+    forwardRef(() => UsersModule),
     SupabaseModule,
+    forwardRef(() => ReactionsModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

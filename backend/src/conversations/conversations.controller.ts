@@ -7,6 +7,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ConversationMembersService } from './conversation-members.service';
 import { MessagesService } from './messages.service';
+import { FilesService } from '@/supabase/files.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('conversations')
@@ -15,6 +16,7 @@ export class ConversationsController {
     private readonly conversationsService: ConversationsService,
     private readonly conversationMembersService: ConversationMembersService,
     private readonly messagesService: MessagesService,
+    private readonly filesService: FilesService,
   ) {}
 
   @Post('group')
@@ -83,6 +85,26 @@ export class ConversationsController {
     @Req() req
   ) {
     return this.messagesService.getMessages(conversationId, req.user.sub, limit, cursor);
+  }
+
+  @Get(':conversationId/medias')
+  getMedias(
+    @Query('limit') limit: number = 20,
+    @Query('cursor') cursor: string,
+    @Param('conversationId') conversationId: string,
+    @Req() req
+  ) {
+    return this.conversationsService.getConversationMedias(conversationId, req.user.sub, limit, cursor)
+  }
+
+  @Get(':conversationId/files') 
+  getFiles(
+    @Param('conversationId') conversationId: string,
+    @Query('limit') limit: number = 20,
+    @Query('cursor') cursor: string,
+    @Req() req
+  ) {
+    return this.filesService.getConversationFiles(conversationId, req.user.sub, limit, cursor)
   }
 
   @Get(':conversationId')

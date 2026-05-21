@@ -13,6 +13,7 @@ export enum ReactionType {
 export enum ReactionTargetType {
   POST = 'post',
   COMMENT = 'comment',
+  MESSAGE = 'message',
 }
 
 @Entity('reactions')

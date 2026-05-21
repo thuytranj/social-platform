@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseInterceptors, UploadedFiles, UseGuards } from "@nestjs/common";
+import { Controller, Post, Body, Req, UseInterceptors, UploadedFiles, UseGuards, Patch, Param } from "@nestjs/common";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { MessagesService } from "./messages.service";
 import { CreateMessageDto } from "./dto/create-message.dto";
@@ -57,5 +57,15 @@ export class MessagesController {
     this.conversationGateway.server.to(createMessageDto.conversation_id).emit('new_message', savedMessage);
     
     return savedMessage;
+  }
+
+  @Patch(':id')
+  async updateMessage(
+    @Body('content') content: string,
+    @Req() req,
+    @Param('id') messageId: string,
+  ) {
+    const updatedMessage = await this.messagesService.updateMessage(messageId, req.user.sub, content);
+    return updatedMessage;
   }
 }

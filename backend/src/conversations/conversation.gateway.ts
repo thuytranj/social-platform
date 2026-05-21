@@ -4,9 +4,12 @@ import { JwtService } from "@nestjs/jwt";
 import { MessagesService } from "./messages.service";
 import { CreateMessageDto } from "./dto/create-message.dto";
 import { WsJwtGuard } from "@/common/guards/ws-auth.guard";
-import { UseGuards } from "@nestjs/common";
+import { UseGuards, Inject, forwardRef } from "@nestjs/common";
+import { WsMemberGuard } from "./guards/ws-member.guard";
 
 import { ConversationMembersService } from "./conversation-members.service";
+import { ReactionsService } from "@/reactions/reactions.service";
+import { ReactionTargetType, ReactionType } from "@/reactions/entities/reaction.entity";
 
 @WebSocketGateway({
   namespace: '/conversation',
@@ -22,6 +25,8 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
     private readonly messageService: MessagesService,
     private readonly JwtService: JwtService,
     private readonly conversationMembersService: ConversationMembersService,
+    @Inject(forwardRef(() => ReactionsService))
+    private readonly reactionsService: ReactionsService
   ) {}
 
   async handleConnection(client: Socket) {
@@ -42,26 +47,22 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
     // Clean up if needed when client disconnects
   }
 
-  @UseGuards(WsJwtGuard)
+  @UseGuards(WsJwtGuard, WsMemberGuard)
   @SubscribeMessage('join_room')
   async handleJoinRoom(@ConnectedSocket()client: Socket, @MessageBody() data: {conversationId: string}) {
-    const isMember = await this.conversationMembersService.checkIsMember(data.conversationId, client.data.user.sub);
-    if (!isMember) {
-      return;
-    }
     client.join(data.conversationId)
   }
 
-  @UseGuards(WsJwtGuard)
+  @UseGuards(WsJwtGuard, WsMemberGuard)
   @SubscribeMessage('send_message')
   async handleSendMessage(@ConnectedSocket() client: Socket, @MessageBody() data: CreateMessageDto) {
     const message = await this.messageService.createMessage(data, client.data.user.sub);
     this.server.to(data.conversation_id).emit('new_message', message);
   }
 
-  @UseGuards(WsJwtGuard)
+  @UseGuards(WsJwtGuard, WsMemberGuard)
   @SubscribeMessage('typing')
-  handleTyping(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, isTyping: boolean}) {
+  handleTyping(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string}) {
     const userId = client.data.user.sub;
     const fullName = client.data.user.fullName;
     const avatar = client.data.user.avatar;
@@ -69,7 +70,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
     client.to(data.conversationId).emit('typing', {userId, fullName, avatar});
   }
 
-  @UseGuards(WsJwtGuard)
+  @UseGuards(WsJwtGuard, WsMemberGuard)
   @SubscribeMessage('stop_typing')
   handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string}) {
     const userId = client.data.user.sub;
@@ -78,4 +79,37 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
 
     client.to(data.conversationId).emit('stop_typing', {userId, fullName, avatar});
   }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('update_message')
+  async handleUpdateMessage(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string, content: string}) {
+    const message = await this.messageService.updateMessage(data.messageId, client.data.user.sub, data.content);
+    this.server.to(message.conversation_id).emit('message_updated', message);
+  }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('add_reaction')
+  async handleAddReaction(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string, reaction: ReactionType}) {
+    const reaction = await this.reactionsService.create(client.data.user.sub, {
+      target_type: ReactionTargetType.MESSAGE,
+      target_id: data.messageId,
+      type: data.reaction,
+    });
+    this.server.to(data.conversationId).emit('message_reacted', reaction);
+  }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('remove_reaction')
+  async handleRemoveReaction(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string, reaction: ReactionType}) {
+    const reaction = await this.reactionsService.remove(client.data.user.sub, data.messageId, ReactionTargetType.MESSAGE);
+    this.server.to(data.conversationId).emit('message_unreacted', reaction);
+  }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('delete_message')
+  async handleDeleteMessage(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string}) {
+    await this.messageService.deleteMessage(data.messageId, client.data.user.sub);
+    this.server.to(data.conversationId).emit('message_deleted', data.messageId);
+  }
+
 }

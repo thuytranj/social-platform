@@ -12,7 +12,7 @@ export enum MessageType {
   SYSTEM = 'system'
 }
 
-@Index(['conversation_id', 'deleted_at', 'sent_at'])
+@Index(['conversation_id', 'sent_at'])
 @Entity('messages')
 export class Message {
   @PrimaryColumn('uuid')
@@ -36,6 +36,9 @@ export class Message {
   @Column({nullable: true})
   content?: string
 
+  @Column({default: 0})
+  react_count: number;
+
   @Column({
     name: 'sent_at',
     type: 'timestamptz',
@@ -46,9 +49,6 @@ export class Message {
 
   @UpdateDateColumn({type: 'timestamptz'})
   updated_at: Date;
-
-  @DeleteDateColumn({type: 'timestamptz', nullable: true})
-  deleted_at?: Date;
 
   @BeforeInsert()
   generateId() {

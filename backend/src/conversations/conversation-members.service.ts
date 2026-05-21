@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Inject, forwardRef } from "@nestjs/common";
 import { DataSource, EntityManager, Repository, } from "typeorm";
 import { ConversationMember, ConversationMemberRole } from "./entities/conversation-member.entity";
 import { InjectRepository } from "@nestjs/typeorm";
@@ -16,6 +16,7 @@ export class ConversationMembersService {
     private readonly conversationMemberRepository: Repository<ConversationMember>,
     private readonly dataSource: DataSource,
     private readonly cloudinaryService: CloudinaryService,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService
   ) {}
 
@@ -251,8 +252,8 @@ export class ConversationMembersService {
     });
   }
 
-  async checkIsMember(conversationId: string, userId: string) {
-    const conversationMemberRepo = this.getConversationMemberRepository();
+  async checkIsMember(conversationId: string, userId: string, manager?: EntityManager) {
+    const conversationMemberRepo = this.getConversationMemberRepository(manager);
     return await conversationMemberRepo.findOne({
       where: {
         conversation_id: conversationId,

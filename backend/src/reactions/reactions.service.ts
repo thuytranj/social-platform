@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Inject, forwardRef } from '@nestjs/common';
 import { Reaction, ReactionType } from './entities/reaction.entity';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -10,6 +10,8 @@ import { plainToInstance } from 'class-transformer';
 import { ReactionResponseDto } from './dto/reaction-response.dto';
 import { Comment } from '@/comments/entities/comment.entity';
 import { User } from '@/users/entities/user.entity';
+import { Message } from '@/conversations/entities/message.entity';
+import { ConversationMembersService } from '@/conversations/conversation-members.service';
 
 @Injectable()
 export class ReactionsService {
@@ -17,6 +19,8 @@ export class ReactionsService {
     @InjectRepository(Reaction)
     private reactionRepository: Repository<Reaction>,
     private readonly dataSource: DataSource,
+    @Inject(forwardRef(() => ConversationMembersService))
+    private readonly ConversationMembersService: ConversationMembersService
   ) {}
 
   private getReactionRepository(manager?: EntityManager) {
@@ -130,6 +134,54 @@ export class ReactionsService {
         return plainToInstance(ReactionResponseDto, reaction, {
           excludeExtraneousValues: true,
         });
+      } else if (createReactionDto.target_type === ReactionTargetType.MESSAGE) {
+        const messageRepo = transactionManager.getRepository(Message);
+        
+        const message = await messageRepo.findOne({
+          where: { id: createReactionDto.target_id },
+        });
+
+        if (!message) {
+          throw new BadRequestException('Message not found');
+        }
+
+        const isMember = await this.ConversationMembersService.checkIsMember(message.conversation_id, userId);
+        
+        if (!isMember) {
+          throw new BadRequestException('You are not a member of this conversation');
+        }
+
+        const existingReaction = await reactionRepo.findOne({
+          where: {
+            author_id: userId,
+            target_type: createReactionDto.target_type,
+            target_id: createReactionDto.target_id,
+          },
+        });
+
+        if (existingReaction) {
+          throw new BadRequestException(
+            'You have already reacted to this message',
+          );
+        }
+
+        const reaction = await reactionRepo.create({
+          target_type: createReactionDto.target_type,
+          target_id: createReactionDto.target_id,
+          type: createReactionDto.type,
+          author: { id: userId },
+        });
+
+        await reactionRepo.save(reaction);
+        await messageRepo.increment(
+          { id: createReactionDto.target_id },
+          'react_count',
+          1,
+        );
+
+        return plainToInstance(ReactionResponseDto, reaction, {
+          excludeExtraneousValues: true,
+        });
       }
     });
   }
@@ -201,6 +253,10 @@ export class ReactionsService {
         const commentRepo = transactionManager.getRepository(Comment);
 
         await commentRepo.decrement({ id: target_id }, 'react_count', 1);
+      } else if (target_type === ReactionTargetType.MESSAGE) {
+        const messageRepo = transactionManager.getRepository(Message);
+
+        await messageRepo.decrement({ id: target_id }, 'react_count', 1);
       }
 
       return { message: 'Reaction removed successfully' };

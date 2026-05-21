@@ -11,6 +11,9 @@ import { CreateConversationMemberDto } from './dto/create-conversation-member.dt
 import { ConversationMemberRole } from './entities/conversation-member.entity';
 import { ConversationResponseDto } from './dto/conversation-response.dto';
 import { plainToInstance } from 'class-transformer';
+import { Media } from "@/medias/entities/media.entity";
+import { MediaResponseDto } from '@/medias/entities/media-response.dto';
+import { FileResponseDto } from '@/supabase/dto/file-response.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -19,11 +22,17 @@ export class ConversationsService {
     private readonly conversationRepository: Repository<Conversation>,
     private readonly dataSource: DataSource,
     private readonly cloudinaryService: CloudinaryService,
-    private readonly conversationMemberService: ConversationMembersService
+    private readonly conversationMemberService: ConversationMembersService,
+    @InjectRepository(Media)
+    private readonly mediaRepository: Repository<Media>,
   ) {}
 
   private getConversationRepository(manager?: EntityManager) {
     return manager?.getRepository(Conversation) ?? this.conversationRepository;
+  }
+
+  private getMediaRepository(manager?: EntityManager) {
+    return manager?.getRepository(Media) ?? this.mediaRepository;
   }
 
   private executeTransaction<T>(
@@ -141,6 +150,55 @@ export class ConversationsService {
       data: conversations.map(conversation => plainToInstance(ConversationResponseDto, {...conversation, unread_count: conversation.members[0].unread_count}, { excludeExtraneousValues: true })),
       nextCursor
     }
+  }
+
+  async getConversationMedias(conversationId: string, userId: string, limit: number = 20, cursor?: string) {
+    const isMember = await this.conversationMemberService.checkIsMember(conversationId, userId);
+    if (!isMember) throw new BadRequestException('You are not a member of this conversation');
+
+    const mediaRepo = this.getMediaRepository()
+    
+    const query = mediaRepo.createQueryBuilder('medias')
+      .innerJoin('medias.message_media', 'message_media')
+      .innerJoin('message_media.message', 'message')
+      .andWhere('message.conversation_id = :conversationId', { conversationId })
+      .select('medias.id', 'id')
+      .addSelect('medias.created_at::text', 'created_at')
+      .orderBy('medias.created_at', 'DESC')
+      .addOrderBy('medias.id', 'DESC')
+      .limit(limit + 1);
+    
+    if (cursor) {
+      const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf8')) as { created_at: string, id: string };
+      query.andWhere(
+        `(medias.created_at < :created_at OR (medias.created_at = :created_at AND medias.id < :id))`,
+        { created_at, id }
+      );
+    }
+    
+    const idsResult = await query.getRawMany()
+    if (idsResult.length===0) return {data: [], nextCursor: null}
+    
+    let nextCursor: string | null = null;
+    if (idsResult.length > limit) {
+      idsResult.pop();
+      const lastReturnedMedia = idsResult[idsResult.length - 1];
+      if (lastReturnedMedia) {
+        nextCursor = Buffer.from(
+          JSON.stringify({
+            created_at: lastReturnedMedia.created_at,
+            id: lastReturnedMedia.id,
+          }),
+        ).toString('base64');
+      }
+    }
+
+    const medias = await mediaRepo.createQueryBuilder('medias')
+      .andWhere('medias.id IN (:...ids)', { ids: idsResult.map((media) => media.id) })
+      .orderBy('array_position(ARRAY[:...ids]::uuid[], medias.id)')
+      .getMany()
+    
+    return { data: medias.map(media => plainToInstance(MediaResponseDto, media, { excludeExtraneousValues: true })), nextCursor }
   }
 
   async getConversation(conversationId: string, userId: string) {

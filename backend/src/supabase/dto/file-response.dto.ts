@@ -8,6 +8,9 @@ export class FileResponseDto {
   url: string;
 
   @Expose()
+  message_id: string;
+
+  @Expose()
   original_name: string;
 
   @Expose()

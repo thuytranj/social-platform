@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UploadedFile } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Message } from "./entities/message.entity";
+import { Message, MessageType } from "./entities/message.entity";
 import { DataSource, EntityManager, Repository } from "typeorm";
 import { CreateMessageDto } from "./dto/create-message.dto";
 import { CloudinaryService } from "@/integrations/cloudinary.service";
@@ -94,6 +94,11 @@ export class MessagesService {
     try {
       return this.executeTransaction(async(manager) => {
       const messageRepo = this.getMessageRepository(manager);
+      const isMember = await this.conversationMembersService.checkIsMember(createMessageDto.conversation_id, senderId, manager);
+
+      if (!isMember) {
+        throw new BadRequestException('You are not a member of this conversation');
+      }
 
       const message = messageRepo.create({
         ...createMessageDto,
@@ -153,13 +158,13 @@ export class MessagesService {
         .leftJoinAndSelect('messages.reply_message', 'reply_message')
         .leftJoinAndSelect('messages.sender', 'sender')
         .leftJoinAndSelect('sender.profile', 'profile')
-        .leftJoin('messages.message_medias', 'message_medias')
+        .leftJoinAndSelect('messages.message_medias', 'message_medias')
         .leftJoinAndSelect('message_medias.media', 'media')
         .leftJoinAndSelect('messages.files', 'files')
         .where('messages.id = :id', { id: savedMessage.id })
         .getOne();
         
-      return plainToInstance(MessageResponseDto, savedMessageFull, {
+      return plainToInstance(MessageResponseDto, {...savedMessageFull, medias: savedMessageFull?.message_medias?.map((messageMedia) => messageMedia.media) ?? []}, {
         excludeExtraneousValues: true,
       });
     })
@@ -212,8 +217,6 @@ export class MessagesService {
         nextCursor: null
       }
 
-      console.log("idsResult", idsResult)
-
       let nextCursor: string | null = null;
       if (idsResult.length > limit) {
         idsResult.pop();
@@ -242,4 +245,43 @@ export class MessagesService {
       throw error;
     }
   }
+
+  async updateMessage(messageId: string, userId: string, content: string) {
+    const messageRepo = this.getMessageRepository();
+    const message = await messageRepo.findOne({where: {id: messageId}});
+    if (!message) {
+      throw new BadRequestException('Message not found');
+    }
+    if (message.sender_id !== userId) {
+      throw new BadRequestException('You are not the sender of this message');
+    }
+    message.content = content;
+    await messageRepo.save(message);
+
+    const savedMessage = await messageRepo.findOne({
+      where: {id: messageId},
+      relations: ['sender', 'sender.profile', 'message_medias', 'message_medias.media', 'files', 'reply_message']
+    });
+
+    return plainToInstance(MessageResponseDto, {...savedMessage, medias: savedMessage?.message_medias.map(m => m.media)??[]}, {excludeExtraneousValues: true});
+  } 
+
+  async deleteMessage(messageId: string, userId: string) {
+    const messageRepo = this.getMessageRepository();
+    const message = await messageRepo.findOne({where: {id: messageId}});
+    if (!message) {
+      throw new BadRequestException('Message not found');
+    }
+    if (message.sender_id !== userId) {
+      throw new BadRequestException('You are not the sender of this message');
+    }
+    message.message_type = MessageType.REVOKED;
+    
+    await messageRepo.save(message);
+    const deletedMessage = await messageRepo.findOne({
+      where: {id: messageId},
+      relations: ['sender', 'sender.profile', 'message_medias', 'message_medias.media', 'files', 'reply_message']
+    });
+    return plainToInstance(MessageResponseDto, {...deletedMessage, medias: deletedMessage?.message_medias.map(m => m.media)??[]}, {excludeExtraneousValues: true});
+  } 
 }

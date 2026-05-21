@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional, IsString } from "class-validator";
 import { ReactionTargetType, ReactionType } from "../entities/reaction.entity";
+
 export class CreateReactionDto {
   @IsString()
   @IsOptional()
