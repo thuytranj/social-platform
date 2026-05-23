@@ -120,6 +120,15 @@ export const ChatArea = ({
     prevMsgCountRef.current = messages.length;
   }, [messages.length]);
 
+  // Force scroll to bottom immediately on conversation change
+  useEffect(() => {
+    prevMsgCountRef.current = 0;
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [conversationId]);
+
   // ---- Mark conversation as read on load/change ----
   useEffect(() => {
     if (!conversationId) return;

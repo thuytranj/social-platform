@@ -34,8 +34,22 @@ export const conversationsApi = {
   getConversation: (id: string) =>
     api.get<Conversation>(`/conversations/${id}`).then((r) => r.data),
 
-  createConversation: (data: CreateConversationPayload) =>
-    api.post<Conversation>('/conversations', data).then((r) => r.data),
+  createGroupConversation: (title: string, memberIds: string[]) =>
+    api
+      .post<Conversation>('/conversations/group', {
+        type: ConversationType.GROUP,
+        title,
+        member_ids: memberIds,
+      })
+      .then((r) => r.data),
+
+  createPrivateConversation: (memberId: string) =>
+    api
+      .post<Conversation>('/conversations/private', {
+        type: ConversationType.PRIVATE,
+        member_ids: [memberId],
+      })
+      .then((r) => r.data),
 
   markAsRead: (conversationId: string) =>
     api.post<{ success: boolean }>(`/conversations/${conversationId}/read`).then((r) => r.data),

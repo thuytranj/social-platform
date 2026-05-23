@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { Avatar } from '../../components/ui/Avatar';
 import { Skeleton } from '../../components/ui/Skeleton';
@@ -8,6 +8,7 @@ import { useAuth } from '../../store/AuthContext';
 import { QK } from '../../constants';
 import { Conversation, ConversationType } from '../../types';
 import { formatRelativeTime } from '../../utils/date';
+import { CreateGroupModal } from './CreateGroupModal';
 
 interface ConversationListProps {
   activeConvId: string | null;
@@ -22,6 +23,7 @@ export const ConversationList = ({
 }: ConversationListProps) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: QK.CONVERSATIONS,
@@ -61,9 +63,18 @@ export const ConversationList = ({
     >
       {/* Header */}
       <div className="p-4 pb-3 shrink-0">
-        <h2 className="text-xl font-display font-bold text-ink tracking-tight mb-4">
-          Chats
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-display font-bold text-ink tracking-tight">
+            Chats
+          </h2>
+          <button
+            onClick={() => setIsCreateGroupOpen(true)}
+            title="Create Group Chat"
+            className="w-9 h-9 rounded-xl bg-primary-50 dark:bg-primary-500/10 hover:bg-primary-100 dark:hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 flex items-center justify-center transition-all duration-200 active:scale-95 shadow-xs"
+          >
+            <UserPlus size={18} />
+          </button>
+        </div>
         <div className="relative">
           <Search
             className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"
@@ -164,6 +175,11 @@ export const ConversationList = ({
           })
         )}
       </div>
+      <CreateGroupModal
+        isOpen={isCreateGroupOpen}
+        onClose={() => setIsCreateGroupOpen(false)}
+        onSelectConversation={onSelect}
+      />
     </div>
   );
 };

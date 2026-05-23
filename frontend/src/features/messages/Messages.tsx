@@ -9,9 +9,11 @@ import { ChatArea } from './ChatArea';
 import { ConversationInfoPanel } from './ConversationInfoPanel';
 import { useQuery } from '@tanstack/react-query';
 import { conversationsApi } from '../../api/conversations.api';
+import { useSearchParams } from 'react-router-dom';
 
 export const Messages = () => {
-  const [activeConvId, setActiveConvId] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeConvId = searchParams.get('conversationId');
   const [showInfoPanel, setShowInfoPanel] = useState(false);
   const queryClient = useQueryClient();
 
@@ -131,7 +133,13 @@ export const Messages = () => {
 
   // Clear typing users when conversation changes
   const handleSelectConv = (id: string) => {
-    setActiveConvId(id);
+    setSearchParams({ conversationId: id });
+    setTypingUsers(new Map());
+    setShowInfoPanel(false);
+  };
+
+  const handleBack = () => {
+    setSearchParams({});
     setTypingUsers(new Map());
     setShowInfoPanel(false);
   };
@@ -150,7 +158,7 @@ export const Messages = () => {
       {activeConvId ? (
         <ChatArea
           conversationId={activeConvId}
-          onBack={() => setActiveConvId(null)}
+          onBack={handleBack}
           onToggleInfo={() => setShowInfoPanel((p) => !p)}
           sendMessage={sendMessage}
           emitTyping={emitTyping}

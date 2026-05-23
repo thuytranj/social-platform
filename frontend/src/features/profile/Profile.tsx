@@ -222,7 +222,7 @@ export const Profile = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
 
             <div className="absolute -bottom-12 left-4 sm:left-6">
-              <div className="rounded-full p-1.5 bg-white dark:bg-surface-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10">
+              <div className="rounded-full p-1.5 bg-white dark:bg-surface-800 shadow-lg ring-1 ring-black/5 dark:ring-white/10 flex justify-center items-center">
                 <Avatar
                   src={user.profile?.avatar_url}
                   alt={user.username}

@@ -106,7 +106,7 @@ export const EditProfileModal = ({ isOpen, onClose }: EditProfileModalProps) => 
         {/* Cover Photo */}
         <div>
           <label className="text-sm font-medium text-ink-muted mb-2 block">Cover Photo</label>
-          <div className="relative h-32 bg-surface-200 rounded-xl overflow-hidden group">
+          <div className="relative h-32 bg-surface-200 dark:bg-surface-600 rounded-xl overflow-hidden group">
             {(coverPreview || user?.profile?.cover_url) && (
               <img
                 src={coverPreview || user?.profile?.cover_url!}

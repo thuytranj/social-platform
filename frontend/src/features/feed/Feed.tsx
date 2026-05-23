@@ -38,7 +38,7 @@ export const Feed = () => {
             Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-xs dark:shadow-dark-xs border border-border-subtle dark:border-border-variant"
+                className="bg-white dark:bg-surface-800 rounded-lg p-4 shadow-xs dark:shadow-dark-xs border border-border-subtle dark:border-gray-700"
               >
                 <div className="flex gap-3 mb-4">
                   <Skeleton variant="circular" width={48} height={48} />
