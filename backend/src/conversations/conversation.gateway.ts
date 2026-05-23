@@ -99,6 +99,17 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('update_reaction')
+  async handleUpdateReaction(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string, reaction: ReactionType}) {
+    const reaction = await this.reactionsService.update(client.data.user.sub, {
+      target_type: ReactionTargetType.MESSAGE,
+      target_id: data.messageId,
+      type: data.reaction,
+    });
+    this.server.to(data.conversationId).emit('message_reacted', reaction);
+  }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
   @SubscribeMessage('remove_reaction')
   async handleRemoveReaction(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string, reaction: ReactionType}) {
     const reaction = await this.reactionsService.remove(client.data.user.sub, data.messageId, ReactionTargetType.MESSAGE);

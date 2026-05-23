@@ -1,4 +1,4 @@
-import { BadRequestException, Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UploadedFile, UseInterceptors, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, UploadedFile, UseInterceptors, Query, ForbiddenException } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
@@ -8,6 +8,8 @@ import { memoryStorage } from 'multer';
 import { ConversationMembersService } from './conversation-members.service';
 import { MessagesService } from './messages.service';
 import { FilesService } from '@/supabase/files.service';
+import { Bucket } from '@/supabase/entities/file.entity';
+import { SupabaseService } from '@/supabase/supabase.service';
 
 @UseGuards(JwtAuthGuard)
 @Controller('conversations')
@@ -17,6 +19,7 @@ export class ConversationsController {
     private readonly conversationMembersService: ConversationMembersService,
     private readonly messagesService: MessagesService,
     private readonly filesService: FilesService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   @Post('group')
@@ -95,6 +98,17 @@ export class ConversationsController {
     @Req() req
   ) {
     return this.conversationsService.getConversationMedias(conversationId, req.user.sub, limit, cursor)
+  }
+  @Get(':conversationId/files/:fileName/download')
+  async getDownloadUrl(
+    @Param('conversationId') conversationId: string,
+    @Param('fileName') fileName: string,
+    @Req() req,
+  ) {
+    const isMember = await this.conversationMembersService.checkIsMember(conversationId, req.user.sub)
+    if (!isMember) throw new ForbiddenException('You are not a member of this conversation')
+    
+    return this.supabaseService.getDownloadUrl(fileName, Bucket.MESSAGES);
   }
 
   @Get(':conversationId/files') 

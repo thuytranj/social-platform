@@ -21,6 +21,10 @@ export class ConversationResponseDto {
   unread_count: number
 
   @Expose()
+  @Type(() => UserResponseDto)
+  other_user: UserResponseDto
+
+  @Expose()
   @Type(() => MessageResponseDto)
   last_message: MessageResponseDto
 

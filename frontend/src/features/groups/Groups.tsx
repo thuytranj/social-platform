@@ -95,7 +95,6 @@ export const Groups = () => {
   });
 
   const allGroups: Group[] = (data as any)?.groups ?? (data as any)?.data ?? [];
-  console.log("🚀 ~ Groups ~ allGroups:", allGroups)
   
   const filteredGroups = allGroups.filter((g) =>
     searchQuery

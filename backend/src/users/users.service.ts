@@ -157,8 +157,6 @@ export class UsersService {
     }
 
     const idsResult = await idsQuery.getRawMany();
-    console.log('user ID:', userId);
-    console.log('IDs result:', idsResult);
     let nextCursor: string | null = null;
 
     if (idsResult.length === 0) {

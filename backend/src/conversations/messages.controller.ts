@@ -1,16 +1,19 @@
-import { Controller, Post, Body, Req, UseInterceptors, UploadedFiles, UseGuards, Patch, Param } from "@nestjs/common";
+import { Controller, Post, Body, Req, UseInterceptors, UploadedFiles, UseGuards, Patch, Param, Get, Query } from "@nestjs/common";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { MessagesService } from "./messages.service";
 import { CreateMessageDto } from "./dto/create-message.dto";
 import { JwtAuthGuard } from "@/auth/guards/jwt-auth-guard";
 import { ConversationGateway } from "./conversation.gateway";
+import { ReactionsService } from "@/reactions/reactions.service";
+import { ReactionTargetType, ReactionType } from "@/reactions/entities/reaction.entity";
 
 @UseGuards(JwtAuthGuard)
 @Controller('messages')
 export class MessagesController {
   constructor(
     private readonly messagesService: MessagesService,
-    private readonly conversationGateway: ConversationGateway
+    private readonly conversationGateway: ConversationGateway,
+    private readonly reactionsService: ReactionsService,
   ) {}
 
   @Post()
@@ -67,5 +70,21 @@ export class MessagesController {
   ) {
     const updatedMessage = await this.messagesService.updateMessage(messageId, req.user.sub, content);
     return updatedMessage;
+  }
+
+  @Get(':id/reactions')
+  async getReactions(
+    @Param('id') messageId: string,
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit: number = 10,
+    @Query('type') type?: ReactionType,
+  ) {
+    return this.reactionsService.getRections(
+      messageId,
+      ReactionTargetType.MESSAGE,
+      limit,
+      cursor,
+      type,
+    );
   }
 }

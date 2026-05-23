@@ -135,7 +135,6 @@ export class PostsService {
                 status: FriendshipStatus.ACCEPTED,
               })
               .getRawMany();
-            console.log('Friend IDs for feed entries:', friendIds.map((f) => f.friendId));
 
             feedEntries = friendIds.map((f) => {
               return feedRepo.create({
@@ -236,7 +235,6 @@ export class PostsService {
     
     if (cursor) {
       const { created_at, id } = JSON.parse(Buffer.from(cursor, 'base64').toString('utf-8'));
-      // console.log('Decoded cursor:', { created_at: new Date(created_at), id });
       idsQb.andWhere('feed.created_at < :created_at OR (feed.created_at = :created_at AND feed.id < :id)', { created_at: new Date(created_at), id });
     }
 
@@ -252,11 +250,8 @@ export class PostsService {
 
     if (idsResult.length > limit) {
       const lastEntry = idsResult.pop();
-      console.log('Last entry for next cursor:', lastEntry);
       nextCursor = Buffer.from(JSON.stringify({ created_at: new Date(idsResult[limit-1].created_at).toISOString(), id: idsResult[limit-1].feed_id })).toString('base64');
     }
-
-    // console.log('idsResult:', idsResult);
 
     const postIds = idsResult.map((row) => row.id);
 

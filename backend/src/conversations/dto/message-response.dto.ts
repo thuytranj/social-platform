@@ -3,6 +3,7 @@ import { MessageType } from "../entities/message.entity";
 import { UserResponseDto } from "@/users/dto/user-response.dto";
 import { MediaResponseDto } from "@/medias/entities/media-response.dto";
 import { FileResponseDto } from "@/supabase/dto/file-response.dto";
+import { ReactionResponseDto } from "@/reactions/dto/reaction-response.dto";
 
 export class MessageResponseDto {
   @Expose()
@@ -27,6 +28,10 @@ export class MessageResponseDto {
 
   @Expose()
   react_count: number;
+
+  @Expose()
+  @Type(() => ReactionResponseDto)
+  reactions?: ReactionResponseDto[];
 
   @Expose()
   @Type(() => MediaResponseDto)

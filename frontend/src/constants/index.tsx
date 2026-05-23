@@ -45,6 +45,9 @@ export const QK = {
   CONVERSATIONS: ['conversations'] as const,
   CONVERSATION: (id: string) => ['conversation', id] as const,
   MESSAGES: (id: string) => ['messages', id] as const,
+  CONVERSATION_MEMBERS: (id: string) => ['conversation-members', id] as const,
+  CONVERSATION_MEDIAS: (id: string) => ['conversation-medias', id] as const,
+  CONVERSATION_FILES: (id: string) => ['conversation-files', id] as const,
 
   SEARCH_USERS: (q: string) => ['search-users', q] as const,
 } as const;
@@ -74,6 +77,24 @@ export const SOCKET_EVENTS = {
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
   CONNECT_ERROR: 'connect_error',
+} as const;
+
+// Conversation-namespace socket events (backend gateway at /conversation)
+export const CONV_SOCKET_EVENTS = {
+  JOIN_ROOM: 'join_room',
+  SEND_MESSAGE: 'send_message',
+  NEW_MESSAGE: 'new_message',
+  TYPING: 'typing',
+  STOP_TYPING: 'stop_typing',
+  UPDATE_MESSAGE: 'update_message',
+  MESSAGE_UPDATED: 'message_updated',
+  DELETE_MESSAGE: 'delete_message',
+  MESSAGE_DELETED: 'message_deleted',
+  ADD_REACTION: 'add_reaction',
+  UPDATE_REACTION: 'update_reaction',
+  REMOVE_REACTION: 'remove_reaction',
+  MESSAGE_REACTED: 'message_reacted',
+  MESSAGE_UNREACTED: 'message_unreacted',
 } as const;
 
 // Reaction config

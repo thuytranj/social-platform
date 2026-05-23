@@ -36,7 +36,6 @@ export const Login = () => {
     try {
       setIsLoading(true);
       const res = await authApi.login(data);
-      console.log('Login response:', res.access_token);
       login(res.access_token);
       success('Logged in successfully');
       navigate('/', { replace: true });

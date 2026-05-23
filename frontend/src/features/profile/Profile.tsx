@@ -37,6 +37,7 @@ import { formatShortDate } from '../../utils/date';
 import { useToast } from '../../store/ToastContext';
 import { FriendRelation } from '../../types';
 import { Tabs } from '../../components/ui/Tabs';
+import { LightboxGallery } from '../../components/ui';
 
 export const Profile = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +47,8 @@ export const Profile = () => {
   const isOwnProfile = currentUser?.id === id;
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [friendStatus, setFriendStatus] = useState<FriendRelation>('none');
+  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: QK.USER(id!),
@@ -142,14 +145,14 @@ export const Profile = () => {
   }
 
   const posts = postsData?.pages.flatMap((page) => page.data) ?? [];
-  const featuredPhotos = posts
+  const allProfilePhotos = posts
     .flatMap((post) =>
       (post.postMedias ?? []).map(
         (media: any) => media.url ?? media?.media?.url,
       ),
     )
-    .filter(Boolean)
-    .slice(0, 6);
+    .filter(Boolean);
+  const featuredPhotos = allProfilePhotos.slice(0, 6);
 
   const stats = [
     { label: 'Posts', value: posts.length },
@@ -396,25 +399,46 @@ export const Profile = () => {
                 <h2 className="font-display text-lg font-semibold text-text-primary dark:text-text-primary">
                   Photos
                 </h2>
-                <button className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors">
-                  See All
-                </button>
+                {allProfilePhotos.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setActiveGalleryIndex(0);
+                      setIsGalleryOpen(true);
+                    }}
+                    className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+                  >
+                    See All
+                  </button>
+                )}
               </CardHeader>
               <CardContent>
                 {featuredPhotos.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2">
-                    {featuredPhotos.map((url, index) => (
-                      <div
-                        key={`${url}-${index}`}
-                        className="aspect-square overflow-hidden rounded-xl bg-surface dark:bg-surface-700"
-                      >
-                        <img
-                          src={url}
-                          alt="Profile photo"
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                    ))}
+                    {featuredPhotos.map((url, index) => {
+                      const isLast = index === 5 && allProfilePhotos.length > 6;
+                      const remainingCount = allProfilePhotos.length - 5;
+                      return (
+                        <button
+                          key={`${url}-${index}`}
+                          onClick={() => {
+                            setActiveGalleryIndex(index);
+                            setIsGalleryOpen(true);
+                          }}
+                          className="relative aspect-square overflow-hidden rounded-xl bg-surface dark:bg-surface-700 hover:opacity-90 active:scale-95 transition-all group"
+                        >
+                          <img
+                            src={url}
+                            alt="Profile photo"
+                            className="h-full w-full object-cover"
+                          />
+                          {isLast && (
+                            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center text-white font-bold text-lg group-hover:bg-black/50 transition-colors">
+                              +{remainingCount}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-border-variant dark:border-border-variant bg-surface dark:bg-surface-700 p-4 text-sm text-text-secondary dark:text-text-secondary">
@@ -492,8 +516,36 @@ export const Profile = () => {
 
             {activeTab === 'photos' && (
               <Card>
-                <CardContent className="py-10 text-center text-text-secondary dark:text-text-secondary">
-                  Photos content can be expanded here.
+                <CardHeader>
+                  <h2 className="font-display text-lg font-semibold text-text-primary dark:text-text-primary">
+                    All Photos
+                  </h2>
+                </CardHeader>
+                <CardContent>
+                  {allProfilePhotos.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {allProfilePhotos.map((url, idx) => (
+                        <button
+                          key={`${url}-${idx}`}
+                          onClick={() => {
+                            setActiveGalleryIndex(idx);
+                            setIsGalleryOpen(true);
+                          }}
+                          className="relative aspect-square overflow-hidden rounded-xl bg-surface dark:bg-surface-700 hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <img
+                            src={url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10 text-text-secondary dark:text-text-secondary">
+                      No photos available
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -507,6 +559,13 @@ export const Profile = () => {
           onClose={() => setIsEditModalOpen(false)}
         />
       )}
+
+      <LightboxGallery
+        images={allProfilePhotos}
+        initialIndex={activeGalleryIndex}
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+      />
     </div>
   );
 };

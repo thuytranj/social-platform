@@ -23,8 +23,7 @@ export enum ReactionTargetType {
 
 export enum MessageType {
   TEXT = 'text',
-  MEDIA = 'media',
-  FILE = 'file',
+  REVOKED = 'revoked',
   SYSTEM = 'system',
 }
 
@@ -103,10 +102,26 @@ export interface PostMedia {
   height?: number;
 }
 
-export interface MessageMedia {
+export interface MediaAttachment {
   id: string;
   url: string;
-  type: 'image' | 'video' | 'file';
+  type: string;
+  bytes: number;
+  width: number;
+  height: number;
+  duration: number;
+  created_at: string;
+}
+
+export interface FileAttachment {
+  id: string;
+  url: string;
+  message_id: string;
+  file_name: string;
+  original_name: string;
+  file_size: number;
+  mime_type: string;
+  created_at: string;
 }
 
 // ============================================================
@@ -214,6 +229,11 @@ export interface GroupMember {
 // ============================================================
 // Conversations & Messages
 // ============================================================
+export enum ConversationMemberRole {
+  OWNER = 'owner',
+  MEMBER = 'member',
+}
+
 export interface Conversation {
   id: string;
   type: ConversationType;
@@ -222,19 +242,23 @@ export interface Conversation {
   last_message_id: string | null;
   last_message_time: string | null;
   creator_id: string;
+  creator?: User;
   created_at: string;
   updated_at: string;
   last_message?: Message;
   members?: ConversationMember[];
+  unread_count?: number;
   // Computed client-side
   other_user?: User; // for PRIVATE conversations
-  unread_count?: number;
 }
 
 export interface ConversationMember {
   id: string;
   conversation_id: string;
   user_id: string;
+  role: ConversationMemberRole;
+  unread_count: number;
+  last_read_at: string | null;
   last_read_message_id: string | null;
   joined_at: string;
   user: User;
@@ -247,12 +271,14 @@ export interface Message {
   reply_message_id: string | null;
   message_type: MessageType;
   content: string | null;
+  react_count: number;
   sent_at: string;
   updated_at: string;
-  deleted_at: string | null;
   sender: User;
-  message_medias: MessageMedia[];
+  medias: MediaAttachment[];
+  files: FileAttachment[];
   reply_message?: Message;
+  reactions?: Reaction[];
 }
 
 // ============================================================

@@ -135,21 +135,45 @@ export class ConversationsService {
       }
     }
 
-    const conversations = await conversationRepo.createQueryBuilder('conversations')
-      .leftJoin('conversations.members', 'members')
-      .addSelect(['members.unread_count'])
+    const { raw, entities } = await conversationRepo.createQueryBuilder('conversations')
+      .leftJoin('conversations.members', 'current_member', 'current_member.user_id = :userId', { userId })
+      .addSelect('current_member.unread_count', 'unread_count')
+      .leftJoinAndSelect('conversations.members', 'other_member', 'conversations.type = :privateType AND other_member.user_id != :userId', { userId, privateType: ConversationType.PRIVATE })
+      .leftJoinAndSelect('other_member.user', 'other_user')
+      .leftJoinAndSelect('other_user.profile', 'other_profile')
       .leftJoinAndSelect('conversations.last_message', 'last_message')
       .leftJoinAndSelect('last_message.sender', 'sender')
       .leftJoinAndSelect('sender.profile', 'sender_profile')
       .where('conversations.id IN (:...ids)', { ids: idsResult.map((conversation) => conversation.id) })
-      .andWhere('members.user_id = :userId', { userId })
       .orderBy('array_position(ARRAY[:...ids]::uuid[], conversations.id)')
-      .getMany()
-    
+      .getRawAndEntities()
+
+
     return {
-      data: conversations.map(conversation => plainToInstance(ConversationResponseDto, {...conversation, unread_count: conversation.members[0].unread_count}, { excludeExtraneousValues: true })),
-      nextCursor
-    }
+      data: entities.map((conversation, index) => {
+        if (conversation.last_message && conversation.last_message.message_type === 'revoked') {
+          const sender = conversation.last_message.sender_id === userId ? 'You' : (conversation.last_message.sender.profile.full_name || conversation.last_message.sender.username || 'Someone');
+          conversation.last_message.content = `${sender} deleted this message`;
+        }
+        return plainToInstance(
+          ConversationResponseDto,
+          {
+            ...conversation,
+
+            unread_count: Number(raw[index].unread_count),
+
+            other_user:
+              conversation.type === ConversationType.PRIVATE
+                ? conversation.members?.[0]?.user
+                : null,
+          },
+          {
+            excludeExtraneousValues: true,
+          },
+        );
+      }),
+      nextCursor,
+    };
   }
 
   async getConversationMedias(conversationId: string, userId: string, limit: number = 20, cursor?: string) {
@@ -207,12 +231,27 @@ export class ConversationsService {
     if (!isMember) throw new BadRequestException('You are not a member of this conversation')
     
     const conversation = await conversationRepo.createQueryBuilder('conversations')
+      .leftJoinAndSelect('conversations.members', 'other_member', 'conversations.type = :privateType AND other_member.user_id != :userId', { userId, privateType: ConversationType.PRIVATE })
+      .leftJoinAndSelect('other_member.user', 'other_user')
+      .leftJoinAndSelect('other_user.profile', 'other_profile')
       .leftJoinAndSelect('conversations.creator', 'creator')
       .leftJoinAndSelect('creator.profile', 'creator_profile')
       .where('conversations.id = :conversationId', { conversationId })
       .getOne()
     
-    return plainToInstance(ConversationResponseDto, conversation, { excludeExtraneousValues: true })
+    if (!conversation) throw new BadRequestException('Conversation not found')
+
+    return plainToInstance(
+      ConversationResponseDto,
+      {
+        ...conversation,
+        other_user:
+          conversation.type === ConversationType.PRIVATE
+            ? conversation.members?.[0]?.user
+            : null,
+      },
+      { excludeExtraneousValues: true },
+    );
   } 
 
   async update(id: string, userId: string, updateConversationDto: UpdateConversationDto, file?: Express.Multer.File) {

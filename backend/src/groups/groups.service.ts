@@ -79,7 +79,6 @@ export class GroupsService {
           Folder.COVER_PHOTOS,
         );
 
-        console.log(cover);
       }
 
       return this.dataSource.transaction(async (manager) => {

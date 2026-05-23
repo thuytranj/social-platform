@@ -422,6 +422,115 @@ body {
   box-shadow: 0px 12px 44px rgba(0, 0, 0, 0.65);
 }
 
+/* ============================================================
+   MESSENGER — Animations & Utilities
+   ============================================================ */
+
+/* Message slide-in entrance */
+.msg-slide-in {
+  animation: msgSlideIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes msgSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Conversation list item staggered entrance */
+.conv-item-enter {
+  animation: convItemEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes convItemEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Info panel slide-in from right */
+.info-panel-enter {
+  animation: infoPanelEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes infoPanelEnter {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* File card — frosted glass */
+.file-card {
+  @apply rounded-xl border transition-colors;
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+.dark .file-card {
+  background: rgba(37, 37, 50, 0.7);
+  border-color: rgba(241, 240, 255, 0.06);
+  backdrop-filter: blur(8px);
+}
+
+/* Glass header for chat area */
+.glass-header {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.dark .glass-header {
+  background: rgba(15, 15, 20, 0.82);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid rgba(241, 240, 255, 0.06);
+}
+
+/* Message hover actions reveal */
+.msg-actions {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.msg-bubble-wrapper:hover .msg-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Day separator */
+.day-separator {
+  @apply flex items-center gap-3 my-4;
+}
+
+.day-separator::before,
+.day-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.dark .day-separator::before,
+.dark .day-separator::after {
+  background: rgba(241, 240, 255, 0.06);
+}
+
 /* Smooth page transitions */
 .page-enter {
   animation: fadeIn 0.25s ease-out, slideUp 0.25s ease-out;

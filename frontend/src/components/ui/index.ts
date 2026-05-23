@@ -13,3 +13,4 @@ export { Tabs, TabContent } from './Tabs';
 export { Badge, Chip } from './Badge';
 export { Skeleton } from './Skeleton';
 export { ToastContainer } from './Toast';
+export { LightboxGallery } from './LightboxGallery';

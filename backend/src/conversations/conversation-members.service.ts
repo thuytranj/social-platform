@@ -207,8 +207,6 @@ export class ConversationMembersService {
         relations: ['conversation']
       })
       if (!isOwner || isOwner.conversation.type !== ConversationType.GROUP) {
-        console.log(isOwner)
-        console.log(isOwner?.conversation.type)
         throw new BadRequestException('You do not have permission to transfer ownership of this group.');
       }
 

@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable, UploadedFile } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Message, MessageType } from "./entities/message.entity";
-import { DataSource, EntityManager, Repository } from "typeorm";
+import { DataSource, EntityManager, Repository, In } from "typeorm";
+import { Reaction, ReactionTargetType } from "@/reactions/entities/reaction.entity";
 import { CreateMessageDto } from "./dto/create-message.dto";
 import { CloudinaryService } from "@/integrations/cloudinary.service";
 import { Folder } from "@/common/constants/constants";
@@ -237,8 +238,35 @@ export class MessagesService {
         .orderBy('array_position(ARRAY[:...ids]::uuid[], messages.id)')
         .getMany()
 
+      const messageIds = messages.map(m => m.id);
+      let reactions: Reaction[] = [];
+      if (messageIds.length > 0) {
+        reactions = await this.dataSource.getRepository(Reaction).find({
+          where: {
+            target_type: ReactionTargetType.MESSAGE,
+            target_id: In(messageIds)
+          },
+          relations: ['author', 'author.profile']
+        });
+      }
+
+      const reactionsByMessageId = reactions.reduce((acc, rx) => {
+        if (!acc[rx.target_id]) {
+          acc[rx.target_id] = [];
+        }
+        acc[rx.target_id].push(rx);
+        return acc;
+      }, {} as Record<string, Reaction[]>);
+
       return {
-        data: messages.map(message => plainToInstance(MessageResponseDto, {...message, medias: message.message_medias.map(m => m.media)}, {excludeExtraneousValues: true})),
+        data: messages.map(message => {
+          const messageReactions = reactionsByMessageId[message.id] ?? [];
+          return plainToInstance(MessageResponseDto, {
+            ...message,
+            medias: message.message_medias.map(m => m.media),
+            reactions: messageReactions
+          }, {excludeExtraneousValues: true});
+        }),
         nextCursor,
       };
     } catch (error) {
@@ -263,7 +291,19 @@ export class MessagesService {
       relations: ['sender', 'sender.profile', 'message_medias', 'message_medias.media', 'files', 'reply_message']
     });
 
-    return plainToInstance(MessageResponseDto, {...savedMessage, medias: savedMessage?.message_medias.map(m => m.media)??[]}, {excludeExtraneousValues: true});
+    const messageReactions = await this.dataSource.getRepository(Reaction).find({
+      where: {
+        target_type: ReactionTargetType.MESSAGE,
+        target_id: messageId
+      },
+      relations: ['author', 'author.profile']
+    });
+
+    return plainToInstance(MessageResponseDto, {
+      ...savedMessage,
+      medias: savedMessage?.message_medias.map(m => m.media) ?? [],
+      reactions: messageReactions
+    }, {excludeExtraneousValues: true});
   } 
 
   async deleteMessage(messageId: string, userId: string) {

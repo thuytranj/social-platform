@@ -14,6 +14,9 @@ export class FileResponseDto {
   original_name: string;
 
   @Expose()
+  file_name: string;
+
+  @Expose()
   file_size: number;
 
   @Expose()
