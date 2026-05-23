@@ -95,6 +95,8 @@ export const CONV_SOCKET_EVENTS = {
   REMOVE_REACTION: 'remove_reaction',
   MESSAGE_REACTED: 'message_reacted',
   MESSAGE_UNREACTED: 'message_unreacted',
+  MARK_AS_READ: 'mark_as_read',
+  MESSAGE_READ: 'message_read',
 } as const;
 
 // Reaction config

@@ -8,12 +8,12 @@ import { CloudinaryService } from '@/integrations/cloudinary.service';
 import { Folder } from '@/common/constants/constants';
 import { ConversationMembersService } from './conversation-members.service';
 import { CreateConversationMemberDto } from './dto/create-conversation-member.dto';
-import { ConversationMemberRole } from './entities/conversation-member.entity';
+import { ConversationMember, ConversationMemberRole } from './entities/conversation-member.entity';
 import { ConversationResponseDto } from './dto/conversation-response.dto';
 import { plainToInstance } from 'class-transformer';
 import { Media } from "@/medias/entities/media.entity";
 import { MediaResponseDto } from '@/medias/entities/media-response.dto';
-import { FileResponseDto } from '@/supabase/dto/file-response.dto';
+import { Message } from './entities/message.entity';
 
 @Injectable()
 export class ConversationsService {
@@ -227,7 +227,7 @@ export class ConversationsService {
 
   async getConversation(conversationId: string, userId: string) {
     const conversationRepo = this.getConversationRepository()
-    const isMember = await this.conversationMemberService.getOne(conversationId, userId)
+    const isMember = await this.conversationMemberService.checkIsMember(conversationId, userId)
     if (!isMember) throw new BadRequestException('You are not a member of this conversation')
     
     const conversation = await conversationRepo.createQueryBuilder('conversations')
@@ -257,7 +257,7 @@ export class ConversationsService {
   async update(id: string, userId: string, updateConversationDto: UpdateConversationDto, file?: Express.Multer.File) {
     return this.dataSource.transaction(async (transactionManager) => {
       const conversationRepo = this.getConversationRepository(transactionManager)
-      const isMember = await this.conversationMemberService.getOne(id, userId, transactionManager)
+      const isMember = await this.conversationMemberService.checkIsMember(id, userId, transactionManager)
 
       if (isMember?.role !== ConversationMemberRole.OWNER) {
         throw new BadRequestException('You are not authorized to update this conversation')
@@ -281,7 +281,7 @@ export class ConversationsService {
 
   async remove(userId: string, conversationId: string) {
     const conversationRepo = this.getConversationRepository()
-    const isMember = await this.conversationMemberService.getOne(conversationId, userId)
+    const isMember = await this.conversationMemberService.checkIsMember(conversationId, userId)
     if (!isMember) throw new BadRequestException('You are not a member of this conversation')
     
     if (isMember.role !== ConversationMemberRole.OWNER) {
@@ -289,5 +289,20 @@ export class ConversationsService {
     }
     
     return await conversationRepo.delete(conversationId)
+  }
+
+  async markAsRead(conversationId: string, userId: string) {
+    return this.dataSource.transaction(async (transactionManager) => {
+      const isMember = await this.conversationMemberService.checkIsMember(conversationId, userId, transactionManager)
+      if (!isMember) throw new BadRequestException('You are not a member of this conversation')
+
+      const lastMessage = await this.dataSource.getRepository(Message).findOne({where: {conversation_id: conversationId}, order: {sent_at: 'DESC'}})
+     
+      await this.dataSource.getRepository(ConversationMember).update({conversation_id: conversationId, user_id: userId}, {unread_count: 0, last_read_message_id: lastMessage?.id})
+      
+      return {
+        success: true,
+      }
+    })
   }
 }

@@ -26,9 +26,12 @@ export const Avatar = ({
     '2xl': 'w-24 h-24 text-2xl',
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
+  const getInitials = (name: string | null | undefined) => {
+    if (!name || typeof name !== 'string') return '?';
+    const trimmed = name.trim();
+    if (!trimmed) return '?';
+    return trimmed
+      .split(/\s+/)
       .map((n) => n[0])
       .join('')
       .substring(0, 2)

@@ -227,7 +227,7 @@ export class UsersService {
 
   findOneByIdRaw(id: string, manager?: EntityManager) {
     const userRepo = this.getUserRepository(manager);
-    return userRepo.findOne({ where: { id } });
+    return userRepo.findOne({ where: { id }, relations: ['profile'] });
   }
 
   updateUser(

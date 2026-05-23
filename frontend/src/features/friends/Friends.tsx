@@ -15,7 +15,7 @@ export const Friends = () => {
   >('friends');
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="containerMaxWidth p-4 lg:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-display font-bold text-ink">Friends</h1>
       </div>

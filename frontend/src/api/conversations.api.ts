@@ -37,6 +37,9 @@ export const conversationsApi = {
   createConversation: (data: CreateConversationPayload) =>
     api.post<Conversation>('/conversations', data).then((r) => r.data),
 
+  markAsRead: (conversationId: string) =>
+    api.post<{ success: boolean }>(`/conversations/${conversationId}/read`).then((r) => r.data),
+
   // ---- Messages ----
   getMessages: (conversationId: string, limit = 30, cursor?: string) =>
     api

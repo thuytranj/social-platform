@@ -535,3 +535,30 @@ body {
 .page-enter {
   animation: fadeIn 0.25s ease-out, slideUp 0.25s ease-out;
 }
+
+/* Highlight message animation */
+@keyframes highlightFlash {
+  0% {
+    transform: scale(1);
+    background-color: transparent;
+  }
+  15% {
+    transform: scale(1.02);
+    background-color: rgba(59, 130, 246, 0.08);
+  }
+  30% {
+    transform: scale(1.03);
+    background-color: rgba(59, 130, 246, 0.12);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  }
+  100% {
+    transform: scale(1);
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.highlight-message {
+  animation: highlightFlash 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+  border-radius: 16px;
+}

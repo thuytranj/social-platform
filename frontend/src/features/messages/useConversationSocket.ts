@@ -12,6 +12,7 @@ interface UseConversationSocketOptions {
   onStopTyping?: (data: { userId: string }) => void;
   onMessageReacted?: (data: any) => void;
   onMessageUnreacted?: (data: any) => void;
+  onMessageRead?: (data: { conversationId: string; userId: string; lastReadTime: Date }) => void;
 }
 
 export const useConversationSocket = ({
@@ -23,6 +24,7 @@ export const useConversationSocket = ({
   onStopTyping,
   onMessageReacted,
   onMessageUnreacted,
+  onMessageRead,
 }: UseConversationSocketOptions) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -123,6 +125,13 @@ export const useConversationSocket = ({
       handlers.push([CONV_SOCKET_EVENTS.MESSAGE_UNREACTED, handler]);
     }
 
+    if (onMessageRead) {
+      const handler = (data: { conversationId: string; userId: string; lastReadTime: Date }) =>
+        onMessageRead(data);
+      socket.on(CONV_SOCKET_EVENTS.MESSAGE_READ, handler);
+      handlers.push([CONV_SOCKET_EVENTS.MESSAGE_READ, handler]);
+    }
+
     return () => {
       handlers.forEach(([event, handler]) => socket.off(event, handler));
     };
@@ -135,6 +144,7 @@ export const useConversationSocket = ({
     onStopTyping,
     onMessageReacted,
     onMessageUnreacted,
+    onMessageRead,
   ]);
 
   // Emit helpers
@@ -218,6 +228,13 @@ export const useConversationSocket = ({
     [socket],
   );
 
+  const emitMarkAsRead = useCallback(
+    (convId: string) => {
+      socket?.emit(CONV_SOCKET_EVENTS.MARK_AS_READ, { conversationId: convId });
+    },
+    [socket],
+  );
+
   return {
     socket,
     isConnected,
@@ -229,5 +246,6 @@ export const useConversationSocket = ({
     addReaction,
     updateReaction,
     removeReaction,
+    emitMarkAsRead,
   };
 };

@@ -40,6 +40,7 @@ interface ChatAreaProps {
   addReaction: (convId: string, messageId: string, reaction: string) => void;
   updateReaction: (convId: string, messageId: string, reaction: string) => void;
   removeReaction: (convId: string, messageId: string, reaction: string) => void;
+  emitMarkAsRead: (convId: string) => void;
   typingUsers: Map<string, { fullName: string; avatar: string }>;
 }
 
@@ -61,6 +62,7 @@ export const ChatArea = ({
   addReaction,
   updateReaction,
   removeReaction,
+  emitMarkAsRead,
   typingUsers,
 }: ChatAreaProps) => {
   const { user } = useAuth();
@@ -117,6 +119,21 @@ export const ChatArea = ({
     }
     prevMsgCountRef.current = messages.length;
   }, [messages.length]);
+
+  // ---- Mark conversation as read on load/change ----
+  useEffect(() => {
+    if (!conversationId) return;
+    
+    emitMarkAsRead(conversationId);
+    
+    conversationsApi.markAsRead(conversationId)
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: QK.CONVERSATIONS });
+      })
+      .catch((err) => {
+        console.error('Failed to mark conversation as read:', err);
+      });
+  }, [conversationId, queryClient, emitMarkAsRead]);
 
   // ---- Helpers ----
   const getConvName = () => {
@@ -303,7 +320,7 @@ export const ChatArea = ({
                     const showTimeSeparator = timeDiff > 60 * 60 * 1000; // > 1 hour
 
                     return (
-                      <div key={msg.id} className="msg-slide-in">
+                      <div key={msg.id} id={`message-${msg.id}`} className="msg-slide-in">
                         {showTimeSeparator && (
                           <div className="flex justify-center my-6">
                             <span className="text-[10px] font-semibold text-ink-faint bg-surface-100 dark:bg-surface-800/40 px-3 py-1 rounded-full border border-gray-200/50 dark:border-white/[0.04] select-none">
@@ -328,6 +345,18 @@ export const ChatArea = ({
             ))}
           </>
         )}
+
+        {/* Typing indicators */}
+        {Array.from(typingUsers.entries()).map(([userId, typingUser]) => (
+          <div key={userId} className="flex gap-3 items-end mt-2 mb-4 animate-pulse">
+            <Avatar src={typingUser.avatar} alt={typingUser.fullName || 'User'} size="sm" />
+            <div className="bg-gray-100 dark:bg-surface-800 px-4 py-2.5 rounded-2xl rounded-bl-sm flex items-center gap-1.5 border border-gray-200/50 dark:border-white/[0.04]">
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </div>
+          </div>
+        ))}
 
         <div ref={messagesEndRef} />
       </div>

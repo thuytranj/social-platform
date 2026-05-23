@@ -16,6 +16,7 @@ import { Conversation } from "./entities/conversation.entity";
 import { plainToInstance } from "class-transformer";
 import { MessageResponseDto } from "./dto/message-response.dto";
 import { ConversationMembersService } from "./conversation-members.service";
+import { ConversationMember } from "./entities/conversation-member.entity";
 
 @Injectable()
 export class MessagesService {
@@ -34,6 +35,8 @@ export class MessagesService {
     @InjectRepository(Conversation)
     private readonly conversationRepository: Repository<Conversation>,
     private readonly conversationMembersService: ConversationMembersService,
+    @InjectRepository(ConversationMember)
+    private readonly conversationMemberRepository: Repository<ConversationMember>,
   ) {}
 
   private getMessageRepository(manager?: EntityManager) {
@@ -52,6 +55,10 @@ export class MessagesService {
     return manager?.getRepository(Message_Media) ?? this.messageMediaRepository;
   }
 
+  private getConversationMemberRepository(manager?: EntityManager) {
+    return manager?.getRepository(ConversationMember) ?? this.conversationMemberRepository;
+  }
+
   private executeTransaction = async <T>(
     callback: (manager: EntityManager) => Promise<T>,
   ): Promise<T> => {
@@ -60,11 +67,17 @@ export class MessagesService {
 
   private async emitUpdates(message: Message, conversationId: string, manager?: EntityManager) {
     const conversationRepo = this.getConversationRepository(manager);
+    const conversationMemberRepo = this.getConversationMemberRepository(manager);
+
 
     await conversationRepo.update(conversationId, {
       last_message_id: message.id,
       last_message_time: message.sent_at
     });
+
+    await conversationMemberRepo.createQueryBuilder().update(ConversationMember).set({
+      unread_count: () => 'unread_count + 1',
+    }).where('conversation_id = :conversationId AND user_id <> :userId', { conversationId, userId: message.sender_id }).execute()
   }
 
   async createMessage(createMessageDto: CreateMessageDto, senderId: string, files?: Express.Multer.File[]) {

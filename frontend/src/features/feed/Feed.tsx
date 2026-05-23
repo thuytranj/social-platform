@@ -28,7 +28,7 @@ export const Feed = () => {
   const posts = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
-    <div className="flex gap-6 items-start w-full">
+    <div className="p-4 lg:p-8 flex gap-6 items-start w-full">
       <div className="flex-1 max-w-2xl">
         <CreatePost />
 

@@ -29,19 +29,31 @@ export const Messages = () => {
     addReaction,
     updateReaction,
     removeReaction,
+    emitMarkAsRead,
   } = useConversationSocket({
     conversationId: activeConvId,
     onNewMessage: useCallback(
       (msg: Message) => {
-        // Invalidate messages and conversation list
+        // Invalidate messages
         queryClient.invalidateQueries({
           queryKey: QK.MESSAGES(msg.conversation_id),
         });
-        queryClient.invalidateQueries({
-          queryKey: QK.CONVERSATIONS,
-        });
+
+        if (activeConvId === msg.conversation_id) {
+          conversationsApi.markAsRead(msg.conversation_id).then(() => {
+            queryClient.invalidateQueries({
+              queryKey: QK.CONVERSATIONS,
+            });
+          }).catch((err) => {
+            console.error('Failed to mark active conversation as read:', err);
+          });
+        } else {
+          queryClient.invalidateQueries({
+            queryKey: QK.CONVERSATIONS,
+          });
+        }
       },
-      [queryClient],
+      [queryClient, activeConvId],
     ),
     onMessageUpdated: useCallback(
       (msg: Message) => {
@@ -107,6 +119,14 @@ export const Messages = () => {
       },
       [queryClient, activeConvId],
     ),
+    onMessageRead: useCallback(
+      () => {
+        queryClient.invalidateQueries({
+          queryKey: QK.CONVERSATIONS,
+        });
+      },
+      [queryClient],
+    ),
   });
 
   // Clear typing users when conversation changes
@@ -124,7 +144,7 @@ export const Messages = () => {
   });
 
   return (
-    <div className="flex h-[calc(100vh-4rem-env(safe-area-inset-bottom))] md:h-[calc(100vh-4rem)] -mx-4 md:-mx-8 -mt-6 md:-mt-8 border-t border-gray-200 dark:border-white/[0.06] bg-white dark:bg-surface-900 overflow-hidden">
+    <div className="flex h-[calc(100vh-4rem-env(safe-area-inset-bottom))] md:h-[calc(100vh-4rem)]  border-t border-gray-200 dark:border-white/[0.06] bg-white dark:bg-surface-900 overflow-hidden">
 
       {/* Center: Chat area */}
       {activeConvId ? (
@@ -139,6 +159,7 @@ export const Messages = () => {
           addReaction={addReaction}
           updateReaction={updateReaction}
           removeReaction={removeReaction}
+          emitMarkAsRead={emitMarkAsRead}
           typingUsers={typingUsers}
         />
       ) : (

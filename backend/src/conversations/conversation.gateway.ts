@@ -7,9 +7,9 @@ import { WsJwtGuard } from "@/common/guards/ws-auth.guard";
 import { UseGuards, Inject, forwardRef } from "@nestjs/common";
 import { WsMemberGuard } from "./guards/ws-member.guard";
 
-import { ConversationMembersService } from "./conversation-members.service";
 import { ReactionsService } from "@/reactions/reactions.service";
 import { ReactionTargetType, ReactionType } from "@/reactions/entities/reaction.entity";
+import { ConversationsService } from "./conversations.service";
 
 @WebSocketGateway({
   namespace: '/conversation',
@@ -24,9 +24,9 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   constructor (
     private readonly messageService: MessagesService,
     private readonly JwtService: JwtService,
-    private readonly conversationMembersService: ConversationMembersService,
     @Inject(forwardRef(() => ReactionsService))
-    private readonly reactionsService: ReactionsService
+    private readonly reactionsService: ReactionsService,
+    private readonly conversationsService: ConversationsService,
   ) {}
 
   async handleConnection(client: Socket) {
@@ -64,7 +64,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   @SubscribeMessage('typing')
   handleTyping(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string}) {
     const userId = client.data.user.sub;
-    const fullName = client.data.user.fullName;
+    const fullName = client.data.user.fullName || client.data.user.username || 'User';
     const avatar = client.data.user.avatar;
 
     client.to(data.conversationId).emit('typing', {userId, fullName, avatar});
@@ -74,7 +74,7 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   @SubscribeMessage('stop_typing')
   handleStopTyping(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string}) {
     const userId = client.data.user.sub;
-    const fullName = client.data.user.fullName;
+    const fullName = client.data.user.fullName || client.data.user.username || 'User';
     const avatar = client.data.user.avatar;
 
     client.to(data.conversationId).emit('stop_typing', {userId, fullName, avatar});
@@ -121,6 +121,13 @@ export class ConversationGateway implements OnGatewayConnection, OnGatewayDiscon
   async handleDeleteMessage(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string, messageId: string}) {
     await this.messageService.deleteMessage(data.messageId, client.data.user.sub);
     this.server.to(data.conversationId).emit('message_deleted', data.messageId);
+  }
+
+  @UseGuards(WsJwtGuard, WsMemberGuard)
+  @SubscribeMessage('mark_as_read')
+  async handleMarkAsRead(@ConnectedSocket() client: Socket, @MessageBody() data: {conversationId: string}) {
+    await this.conversationsService.markAsRead(data.conversationId, client.data.user.sub);
+    this.server.to(data.conversationId).emit('message_read', {conversationId: data.conversationId, userId: client.data.user.sub, lastReadTime: new Date()});
   }
 
 }

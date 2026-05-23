@@ -137,15 +137,15 @@ export class ConversationMembersService {
     };
   }
 
-  async getOne(conversationId: string, userId: string, manager?: EntityManager) {
-    const conversationMembersRepo = this.getConversationMemberRepository(manager);
-    return await conversationMembersRepo.findOne({
-      where: {
-        conversation_id: conversationId,
-        user_id: userId
-      },
-    })
-  }
+  // async getOne(conversationId: string, userId: string, manager?: EntityManager) {
+  //   const conversationMembersRepo = this.getConversationMemberRepository(manager);
+  //   return await conversationMembersRepo.findOne({
+  //     where: {
+  //       conversation_id: conversationId,
+  //       user_id: userId
+  //     },
+  //   })
+  // }
 
   async addMember(conversationId: string, userId: string, memberId: string) {
     return this.dataSource.transaction(async (manager) => {

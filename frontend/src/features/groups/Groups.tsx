@@ -106,7 +106,7 @@ export const Groups = () => {
   const joinedGroups = allGroups.filter((g) => g.role && g.role !== 'pending');
 
   return (
-    <div className="containerMaxWidth px-4 lg:px-8 pb-20">
+    <div className="containerMaxWidth p-4 lg:p-8 pb-20">
       {/* ─── Hero Banner ─── */}
       <div className="relative rounded-2xl overflow-hidden mb-8">
         <div className="h-52 sm:h-64 w-full bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600">

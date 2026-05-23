@@ -135,13 +135,13 @@ export const ConversationList = ({
                       {name}
                     </h3>
                     {lastMsg && (
-                      <span className="text-[11px] text-ink-faint shrink-0 ml-2 tabular-nums">
+                      <span className={`text-[11px] shrink-0 ml-2 tabular-nums ${unread > 0 ? 'font-semibold text-primary-600 dark:text-primary-400' : 'text-ink-faint'}`}>
                         {formatRelativeTime(lastMsg.sent_at)}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className="text-[13px] text-ink-muted truncate flex-1">
+                    <p className={`text-[13px] truncate flex-1 ${unread > 0 ? 'font-semibold text-ink dark:text-white' : 'text-ink-muted'}`}>
                       {(() => {
                         if (!lastMsg) return 'No messages yet';
                         if (lastMsg.message_type === 'revoked') {

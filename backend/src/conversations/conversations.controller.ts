@@ -62,6 +62,14 @@ export class ConversationsController {
     return this.conversationMembersService.addMember(conversationId, req.user.sub, body.userId);
   }
 
+  @Post(':conversationId/read')
+  markAsRead(
+    @Param('conversationId') conversationId: string,
+    @Req() req,
+  ) {
+    return this.conversationsService.markAsRead(conversationId, req.user.sub);
+  }
+
   @Delete(':conversationId/members/:memberId')
   removeMember(
     @Param('conversationId') conversationId: string,

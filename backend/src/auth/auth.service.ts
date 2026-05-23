@@ -187,6 +187,8 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       username: user.username,
+      fullName: user.profile?.full_name,
+      avatar: user.profile?.avatar_url,
     };
 
     const [access_token, new_refresh_token] = await Promise.all([

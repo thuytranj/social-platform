@@ -83,7 +83,6 @@ export const MessageBubble = ({
           className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}
         >
           <div className="px-4 py-2.5 rounded-2xl border border-dashed border-gray-300 dark:border-white/10 text-ink-faint italic text-sm flex items-center gap-2">
-            <RotateCcw size={14} />
             This message was deleted
           </div>
           <span className="text-[10px] text-ink-faint mt-2 px-1">
@@ -121,38 +120,41 @@ export const MessageBubble = ({
       <div
         className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} min-w-0`}
       >
-        <div className="relative max-w-full">
+        <div className={`relative max-w-full flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
           {/* Reply quote */}
           {message.reply_message && (
-            <div
-              className={`mb-2 w-full flex flex-col text-[12px] p-2 rounded-lg text-left ${
-                isMine
-                  ? 'bg-white/10 dark:bg-black/20 border-l-2 border-white text-white/90'
-                  : 'bg-gray-100 dark:bg-surface-700/60 border-l-2 border-primary-500 dark:border-primary-400 text-ink-muted'
-              }`}
+            <button
+              onClick={() => {
+                const targetId = `message-${message.reply_message?.id}`;
+                const element = document.getElementById(targetId);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  element.classList.remove('highlight-message');
+                  void element.offsetWidth; // Trigger reflow to restart animation
+                  element.classList.add('highlight-message');
+                  setTimeout(() => {
+                    element.classList.remove('highlight-message');
+                  }, 1800);
+                }
+              }}
+              className={`mb-2 w-full flex flex-col text-[12px] p-2 rounded-lg text-left transition-all cursor-pointer hover:opacity-90 active:scale-[0.98] bg-gray-100 dark:bg-surface-700/60 border-l-2 border-primary-500 dark:border-primary-400 text-ink-muted hover:bg-gray-200 dark:hover:bg-surface-700`}
             >
-              <p className={`font-bold mb-0.5 text-xs ${isMine ? 'text-white' : 'text-primary-600 dark:text-primary-400'}`}>
-                {message.reply_message.sender?.profile?.full_name ||
-                  message.reply_message.sender?.username ||
-                  'Unknown'}
-              </p>
               <p className="truncate opacity-80">
                 {message.reply_message.content || 'Attachment'}
               </p>
-            </div>
+            </button>
           )}
 
           {/* Media attachments */}
           {hasMedia && (
             <>
               <div
-                className={`mb-1 grid gap-1 max-w-xs ${
-                  message.medias.length === 1
-                    ? 'grid-cols-1'
-                    : message.medias.length === 2
-                      ? 'grid-cols-2'
-                      : 'grid-cols-2'
-                }`}
+                className={`mb-1 grid gap-1 max-w-xs ${message.medias.length === 1
+                  ? 'grid-cols-1'
+                  : message.medias.length === 2
+                    ? 'grid-cols-2'
+                    : 'grid-cols-2'
+                  }`}
               >
                 {message.medias.map((media, idx) => (
                   <button
@@ -184,11 +186,10 @@ export const MessageBubble = ({
           {/* Text content */}
           {message.content && (
             <div
-              className={`px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed ${
-                isMine
-                  ? 'bubble-sent rounded-br-sm'
-                  : 'bubble-received rounded-bl-sm'
-              }`}
+              className={`px-4 py-2.5 rounded-2xl text-[15px] leading-relaxed ${isMine
+                ? 'bubble-sent rounded-br-sm'
+                : 'bubble-received rounded-bl-sm'
+                }`}
             >
               {message.content}
             </div>
@@ -249,9 +250,8 @@ export const MessageBubble = ({
             return (
               <button
                 onClick={() => setShowReactionsModal(true)}
-                className={`absolute -bottom-2.5 z-10 bg-white dark:bg-surface-800 border border-gray-200 dark:border-white/10 rounded-full px-1.5 py-0.5 flex items-center gap-1 text-[10px] shadow-sm hover:scale-105 transition-transform ${
-                  isMine ? 'right-2' : 'left-2'
-                }`}
+                className={`absolute -bottom-2.5 z-10 bg-white dark:bg-surface-800 border border-gray-200 dark:border-white/10 rounded-full px-1.5 py-0.5 flex items-center gap-1 text-[10px] shadow-sm hover:scale-105 transition-transform ${isMine ? 'right-2' : 'left-2'
+                  }`}
               >
                 <span className="flex items-center gap-0.5">{emojis}</span>
                 {(message.reactions.length > 1 || isGroup) && (
@@ -262,9 +262,8 @@ export const MessageBubble = ({
           })() : (message.react_count > 0 && (
             <button
               onClick={() => setShowReactionsModal(true)}
-              className={`absolute -bottom-2.5 z-10 bg-white dark:bg-surface-800 border border-gray-200 dark:border-white/10 rounded-full px-1.5 py-0.5 flex items-center gap-1 text-[10px] shadow-sm hover:scale-105 transition-transform ${
-                isMine ? 'right-2' : 'left-2'
-              }`}
+              className={`absolute -bottom-2.5 z-10 bg-white dark:bg-surface-800 border border-gray-200 dark:border-white/10 rounded-full px-1.5 py-0.5 flex items-center gap-1 text-[10px] shadow-sm hover:scale-105 transition-transform ${isMine ? 'right-2' : 'left-2'
+                }`}
             >
               <span>❤️</span>
               {(message.react_count > 1 || isGroup) && (
@@ -317,11 +316,10 @@ export const MessageBubble = ({
                           onReact(message, r.type);
                           setShowReactionPicker(false);
                         }}
-                        className={`hover:scale-125 transition-all duration-150 text-base px-2 py-1 rounded-full ${
-                          isActive
-                            ? 'border border-primary-500 bg-primary-500/10 dark:bg-primary-500/20'
-                            : 'border border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
-                        }`}
+                        className={`hover:scale-125 transition-all duration-150 text-base px-2 py-1 rounded-full ${isActive
+                          ? 'border border-primary-500 bg-primary-500/10 dark:bg-primary-500/20'
+                          : 'border border-transparent hover:bg-gray-100 dark:hover:bg-white/10'
+                          }`}
                       >
                         {r.emoji}
                       </button>
