@@ -228,6 +228,41 @@ export class GroupsService {
     };
   }
 
+  async searchGroups(
+    userId: string,
+    query: string,
+    limit: number = 20,
+    manager?: EntityManager,
+  ) {
+    const groupRepo = this.getGroupRepository(manager);
+    const queryBuilder = groupRepo
+      .createQueryBuilder('groups')
+      .leftJoinAndSelect('groups.creator', 'creator')
+      .leftJoinAndSelect(
+        'groups.members',
+        'members',
+        'members.user_id = :userId AND members.status = :status',
+        { userId, status: GroupMemberStatus.ACTIVE },
+      )
+      .where('groups.name ILIKE :searchTerm', { searchTerm: `%${query}%` })
+      .orderBy('CASE WHEN members.id IS NOT NULL THEN 0 ELSE 1 END', 'ASC')
+      .addOrderBy('groups.name', 'ASC')
+      .limit(limit);
+
+    const groups = await queryBuilder.getMany();
+
+    return groups.map((group) => {
+      const member = group.members?.[0];
+      return {
+        ...plainToInstance(GroupResponseDto, group, {
+          excludeExtraneousValues: true,
+        }),
+        role: member?.role || null,
+        members_count: group.members_count,
+      };
+    });
+  }
+
   async update(
     userId: string,
     groupId: string,

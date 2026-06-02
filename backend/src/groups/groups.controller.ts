@@ -35,6 +35,11 @@ export class GroupsController {
     return this.groupsService.create(createGroupDto, req.user.sub, coverFile);
   }
 
+  @Get('search')
+  searchGroups(@Req() req, @Query('q') query: string, @Query('limit') limit?: number) {
+    return this.groupsService.searchGroups(req.user.sub, query ?? '', limit ? +limit : 20);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req) {
     return this.groupsService.findOneById(id, undefined, req.user.sub);

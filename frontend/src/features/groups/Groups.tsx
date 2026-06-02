@@ -84,19 +84,22 @@ export const Groups = () => {
   // const [activeCategory, setActiveCategory] = useState('All Groups');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data: myGroupsData, isLoading: isMyGroupsLoading } = useQuery({
     queryKey: QK.GROUPS,
     queryFn: () => groupsApi.getMyGroups(20),
   });
 
-  const allGroups: Group[] = (data as any)?.groups ?? (data as any)?.data ?? [];
-  
-  const filteredGroups = allGroups.filter((g) =>
-    searchQuery
-      ? g.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        g.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      : true,
-  );
+  const allGroups: Group[] = (myGroupsData as any)?.groups ?? (myGroupsData as any)?.data ?? [];
+
+  const trimmedSearch = searchQuery.trim();
+  const { data: searchResults, isLoading: isSearching } = useQuery({
+    queryKey: ['search-groups', trimmedSearch],
+    queryFn: () => groupsApi.searchGroups(trimmedSearch),
+    enabled: !!trimmedSearch,
+  });
+
+  const displayGroups = trimmedSearch ? (searchResults ?? []) : allGroups;
+  const isLoading = trimmedSearch ? isSearching : isMyGroupsLoading;
 
   const joinedGroups = allGroups.filter((g) => g.role && g.role !== 'pending');
 
@@ -172,8 +175,8 @@ export const Groups = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {isLoading ? (
               Array.from({ length: 6 }).map((_, i) => <GroupCardSkeleton key={i} />)
-            ) : filteredGroups.length === 0 ? (
-              <div className="col-span-full text-center py-20 bg-surface-50 dark:bg-surface-900 rounded-2xl border border-border-variant border-dashed">
+            ) : displayGroups.length === 0 ? (
+              <div className="col-span-full text-center py-20 bg-surface-50 dark:bg-surface-900 rounded-2xl border border-border-variant dark:border-white/20 border-dashed">
                 <Users size={48} className="mx-auto mb-4 text-ink-muted" />
                 <h3 className="text-lg font-display font-medium text-ink mb-2">
                   {searchQuery ? 'No groups found' : 'No groups yet'}
@@ -194,7 +197,7 @@ export const Groups = () => {
                 )}
               </div>
             ) : (
-              filteredGroups.map((group) => (
+              displayGroups.map((group) => (
                 <GroupCard key={group.id} group={group} />
               ))
             )}

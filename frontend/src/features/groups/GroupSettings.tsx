@@ -254,14 +254,14 @@ export const GroupSettings = ({
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => approve(req.user_id)}
+                        onClick={() => approve(req.user.id)}
                         className="p-1.5 rounded-lg bg-primary-50 dark:bg-primary-900/20 text-primary-600 hover:bg-primary-100 transition-colors"
                         title="Approve"
                       >
                         <Check size={14} />
                       </button>
                       <button
-                        onClick={() => reject(req.user_id)}
+                        onClick={() => reject(req.user.id)}
                         className="p-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-500 hover:bg-red-100 transition-colors"
                         title="Reject"
                       >

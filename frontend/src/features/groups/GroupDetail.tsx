@@ -113,7 +113,7 @@ export const GroupDetail = () => {
 
   // ─── Derived state ───
   const isMember =
-    group?.role !== undefined && group?.role !== 'pending';
+    group?.role !== null && group?.role !== 'pending';
   const isAdminOrOwner =
     group?.role === GroupRole.ADMIN || group?.role === GroupRole.OWNER;
   const isOwner = group?.role === GroupRole.OWNER;
@@ -402,7 +402,7 @@ export const GroupDetail = () => {
               </div>
               {!isMember && (
                 <div className="pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col items-center gap-3">
-                  <p className="text-xs text-ink-muted text-center max-w-sm">
+                  <p className="text-xs text-ink-muted text-center w-full">
                     {privacy === 'private'
                       ? 'This group is private. You must join to view posts, members, and participate.'
                       : 'Join this community to post, comment, and connect with other members.'}

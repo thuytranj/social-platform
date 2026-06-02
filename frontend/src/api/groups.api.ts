@@ -42,6 +42,9 @@ export const groupsApi = {
   updateGroup: (id: string, data: Partial<CreateGroupPayload>) =>
     api.patch<Group>(`/groups/${id}`, data).then((r) => r.data),
 
+  searchGroups: (q: string, limit = 20) =>
+    api.get<Group[]>('/groups/search', { params: { q, limit } }).then((r) => r.data),
+
   deleteGroup: (id: string) =>
     api.delete(`/groups/${id}`).then((r) => r.data),
 
