@@ -120,8 +120,15 @@ export const GroupDetail = () => {
   const isPending = group?.role === 'pending';
   const posts = postsData?.pages.flatMap((p) => p.data) ?? [];
 
+  const privacy = (group as any)?.privacy as string;
+  const isPrivateAndNonMember = group ? (!isMember && privacy === 'private') : false;
+  const currentTab = isPrivateAndNonMember ? 'about' : activeTab;
+
   // Visible tabs
   const visibleTabs = TABS.filter((t) => {
+    if (isPrivateAndNonMember) {
+      return t.key === 'about';
+    }
     if (t.key === 'settings') return isAdminOrOwner;
     return true;
   });
@@ -149,12 +156,11 @@ export const GroupDetail = () => {
       <div className="text-center py-20 text-ink-muted">Group not found</div>
     );
 
-  const privacy = (group as any).privacy as string;
   const memberCount = (group as any).member_count ?? (group as any).members_count ?? 0;
   const creator = (group as any).creator;
 
   return (
-    <div className="containerMaxWidth pb-10">
+    <div className="containerMaxWidth p-4 lg:p-8">
       <div className="bg-white dark:bg-surface-900 w-full flex flex-col gap-4 rounded-lg">
         {/* ─── Cover Header ─── */}
         <div className="relative w-full overflow-hidden rounded-t-2xl">
@@ -271,7 +277,8 @@ export const GroupDetail = () => {
           </div>
 
         {/* ─── Tab Navigation ─── */}
-        <nav className="flex gap-1 px-4 border-t border-gray-200 dark:border-gray-700">
+        {visibleTabs.length > 1 && (
+          <nav className="flex gap-1 px-4 border-t border-gray-200 dark:border-gray-700">
             {visibleTabs.map((tab) => (
               <button
                 key={tab.key}
@@ -287,18 +294,19 @@ export const GroupDetail = () => {
               </button>
             ))}
           </nav>
+        )}
       </div>
 
       {/* ─── Content ─── */}
       <div className="mt-5 px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ─── Main column ─── */}
-        <main className="lg:col-span-2">
+        <main className={isPrivateAndNonMember ? "lg:col-span-3 max-w-2xl mx-auto w-full" : "lg:col-span-2"}>
           {/* Timeline tab */}
-          {activeTab === 'timeline' && (
+          {currentTab === 'timeline' && (
             <>
               {isMember ? (
                 <div className="space-y-5">
-                  <CreatePost />
+                  <CreatePost groupId={id} />
                   {postsStatus === 'pending' ? (
                     <div className="flex justify-center py-10">
                       <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
@@ -349,7 +357,7 @@ export const GroupDetail = () => {
           )}
 
           {/* About tab */}
-          {activeTab === 'about' && (
+          {currentTab === 'about' && (
             <div className="card p-6 space-y-5">
               <div>
                 <h3 className="text-sm font-semibold text-ink mb-2">About this group</h3>
@@ -392,11 +400,30 @@ export const GroupDetail = () => {
                   </div>
                 )}
               </div>
+              {!isMember && (
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-700 flex flex-col items-center gap-3">
+                  <p className="text-xs text-ink-muted text-center max-w-sm">
+                    {privacy === 'private'
+                      ? 'This group is private. You must join to view posts, members, and participate.'
+                      : 'Join this community to post, comment, and connect with other members.'}
+                  </p>
+                  <Button
+                    onClick={() => joinGroup()}
+                    isLoading={isJoining}
+                    variant="primary"
+                    size="sm"
+                    className="w-full max-w-xs !bg-primary-600 !hover:bg-primary-700 shadow-md"
+                  >
+                    <UserPlus size={14} className="mr-1.5" />
+                    {isPending ? 'Request Pending' : 'Join Group'}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
           {/* Members tab */}
-          {activeTab === 'members' && (
+          {currentTab === 'members' && (
             <div className="card p-5">
               <h3 className="text-sm font-semibold text-ink mb-4">Members</h3>
               {isMember ? (
@@ -410,10 +437,12 @@ export const GroupDetail = () => {
           )}
 
           {/* Settings tab */}
-          {activeTab === 'settings' && isAdminOrOwner && (
+          {currentTab === 'settings' && isAdminOrOwner && (
             <GroupSettings
               groupId={id!}
               groupName={(group as any).name}
+              groupDescription={(group as any).description}
+              groupPrivacy={(group as any).privacy}
               myRole={group.role}
               isOwner={isOwner}
             />
@@ -421,7 +450,7 @@ export const GroupDetail = () => {
         </main>
 
         {/* ─── Right Sidebar ─── */}
-        <aside className="hidden lg:block">
+        <aside className={isPrivateAndNonMember ? "hidden" : "hidden lg:block"}>
           <div className="sticky top-20 space-y-5">
             {/* About widget */}
             <div className="card p-4">

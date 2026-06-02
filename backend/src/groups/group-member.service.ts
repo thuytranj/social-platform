@@ -98,15 +98,23 @@ export class GroupMemberService {
   ) {
     const groupMemberRepository = this.getGroupMemberRepository(manager);
 
-    const isMember = await groupMemberRepository.findOne({
-      where: {
-        group_id: groupId,
-        user_id: userId,
-        status: GroupMemberStatus.ACTIVE,
-      },
-    });
-    if (!isMember) {
-      throw new BadRequestException('User is not a member of the group');
+    const groupRepo = this.getGroupRepository(manager);
+    const group = await groupRepo.findOne({ where: { id: groupId } });
+    if (!group) {
+      throw new BadRequestException('Group not found');
+    }
+
+    if (group.privacy === GroupPrivacy.PRIVATE) {
+      const isMember = await groupMemberRepository.findOne({
+        where: {
+          group_id: groupId,
+          user_id: userId,
+          status: GroupMemberStatus.ACTIVE,
+        },
+      });
+      if (!isMember) {
+        throw new BadRequestException('User is not a member of the group');
+      }
     }
 
     const idsQuery = groupMemberRepository

@@ -9,30 +9,23 @@ import { groupsApi } from '../../api/groups.api';
 import { QK } from '../../constants';
 import { Group } from '../../types';
 
-// const CATEGORY_FILTERS = [
-//   'All Groups',
-//   'UI/UX Design',
-//   'Photography',
-//   'Frontend Dev',
-//   'Motion Graphics',
-//   'Creative Arts',
-// ];
-
 const GroupCardSkeleton = () => (
-  <div className="card overflow-hidden animate-pulse">
-    <div className="h-36 bg-surface-200 dark:bg-surface-700" />
-    <div className="p-4 space-y-3">
-      <div className="h-4 bg-surface-200 dark:bg-surface-700 rounded w-3/4" />
-      <div className="h-3 bg-surface-200 dark:bg-surface-700 rounded w-1/2" />
-      <div className="h-8 bg-surface-200 dark:bg-surface-700 rounded-lg" />
+  <div className="card overflow-hidden animate-pulse h-full flex flex-col">
+    <div className="h-36 bg-surface-200 dark:bg-surface-700 flex-shrink-0" />
+    <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+      <div className="space-y-3">
+        <div className="h-4 bg-surface-200 dark:bg-surface-700 rounded w-3/4" />
+        <div className="h-3 bg-surface-200 dark:bg-surface-700 rounded w-1/2" />
+      </div>
+      <div className="h-8 bg-surface-200 dark:bg-surface-700 rounded-lg w-full mt-2" />
     </div>
   </div>
 );
 
 const GroupCard = ({ group }: { group: Group }) => {
   return (
-    <Link to={`/groups/${group.id}`} className="block group">
-      <div className="card overflow-hidden flex flex-col">
+    <Link to={`/groups/${group.id}`} className="flex flex-col h-full group">
+      <div className="card overflow-hidden flex flex-col h-full w-full">
         {/* Cover Image */}
         <div className="h-36 overflow-hidden relative bg-surface-200 dark:bg-surface-700 flex-shrink-0">
           {group.cover_url ? (
@@ -64,17 +57,19 @@ const GroupCard = ({ group }: { group: Group }) => {
           <h3 className="font-semibold text-ink text-base leading-snug line-clamp-1 mb-1">
             {group.name}
           </h3>
-          {group.description && (
-            <p className="text-xs text-ink-muted line-clamp-2 mb-2 flex-1">
+          {group.description ? (
+            <p className="text-xs text-ink-muted line-clamp-2 mb-4 flex-1">
               {group.description}
             </p>
+          ) : (
+            <div className="flex-1 mb-4" />
           )}
-          <div className="flex items-center justify-between mt-auto">
+          <div className="flex items-center justify-between mt-auto pt-2">
             <span className="text-xs text-ink-muted flex items-center gap-1">
               <Users size={12} />
               {group.members_count?.toLocaleString() ?? 0} members
             </span>
-            <Button size="sm" variant="secondary" className="text-xs font-semibold h-7 px-3 text-primary-600 !bg-primary-100 dark:!bg-primary-950/30 dark:shadow-dark-xs shadow-xs">
+            <Button size="sm" variant="secondary" className="text-xs font-semibold h-7 px-3 text-primary-600 !bg-primary-100 dark:!bg-primary-950/30 dark:shadow-dark-xs shadow-xs flex-shrink-0">
               {group.role ? 'View' : 'Join'}
             </Button>
           </div>

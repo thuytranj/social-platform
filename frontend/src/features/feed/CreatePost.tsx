@@ -10,7 +10,11 @@ import { postsApi } from '../../api/posts.api';
 import { PostPrivacy } from '../../types';
 import { QK, PRIVACY_CONFIG } from '../../constants';
 
-export const CreatePost = () => {
+export interface CreatePostProps {
+  groupId?: string;
+}
+
+export const CreatePost = ({ groupId }: CreatePostProps) => {
   const { user } = useAuth();
   const { success, error } = useToast();
   const queryClient = useQueryClient();
@@ -23,11 +27,14 @@ export const CreatePost = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { mutate: createPost, isPending } = useMutation({
-    mutationFn: () => postsApi.createPost({ content, privacy }, files),
+    mutationFn: () => postsApi.createPost({ content, privacy, group_id: groupId }, files),
     onSuccess: () => {
       setContent('');
       setFiles([]);
       setPreviewUrls([]);
+      if (groupId) {
+        queryClient.invalidateQueries({ queryKey: QK.GROUP_POSTS(groupId) });
+      }
       queryClient.invalidateQueries({ queryKey: QK.FEEDS });
       success('Post created successfully!');
     },

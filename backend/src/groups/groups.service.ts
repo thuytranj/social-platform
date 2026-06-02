@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Group } from './entities/group.entity';
+import { Group, GroupPrivacy } from './entities/group.entity';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateGroupDto } from './dto/create-group.dto';
@@ -304,16 +304,24 @@ export class GroupsService {
     const groupMemberRepository = this.getGroupMemberRepository(manager);
     const postRepository = this.getPostRepository(manager);
 
-    const isMember = await groupMemberRepository.findOne({
-      where: {
-        group_id: groupId,
-        user_id: actorId,
-        status: GroupMemberStatus.ACTIVE,
-      },
-    });
+    const groupRepository = this.getGroupRepository(manager);
+    const group = await groupRepository.findOne({ where: { id: groupId } });
+    if (!group) {
+      throw new BadRequestException('Group not found');
+    }
 
-    if (!isMember) {
-      throw new BadRequestException('You are not a member of this group');
+    if (group.privacy === GroupPrivacy.PRIVATE) {
+      const isMember = await groupMemberRepository.findOne({
+        where: {
+          group_id: groupId,
+          user_id: actorId,
+          status: GroupMemberStatus.ACTIVE,
+        },
+      });
+
+      if (!isMember) {
+        throw new BadRequestException('You are not a member of this private group');
+      }
     }
 
     const query = postRepository.createQueryBuilder('post').leftJoinAndSelect('post.postMedias', 'pm').leftJoinAndSelect('pm.media', 'media').leftJoinAndSelect('post.author', 'author').where('post.group_id = :groupId', { groupId }).orderBy('post.created_at', 'DESC').addOrderBy('post.id', 'DESC').limit(limit + 1);

@@ -89,7 +89,7 @@ export const CreateGroup = () => {
           {/* Cover Photo */}
           <div>
             <label className="text-sm font-medium text-ink-muted mb-2 block">Group Cover Photo</label>
-            <div className="relative h-48 bg-surface-200 rounded-xl overflow-hidden group">
+            <div className="relative h-48 bg-surface-200 dark:bg-surface-700 rounded-xl overflow-hidden group">
               {coverPreview ? (
                 <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
               ) : (
@@ -130,7 +130,7 @@ export const CreateGroup = () => {
               <textarea
                 {...register('description')}
                 placeholder="What is this group about?"
-                className={`w-full rounded-xl border bg-surface-50 dark:bg-surface-900 px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 transition-all duration-150 resize-none h-24 ${
+                className={`w-full rounded-md border dark:border-white/10  bg-surface-50 dark:bg-surface-700  px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-2 transition-all duration-150 resize-none h-24 ${
                   errors.description ? 'border-red-500 focus:ring-red-500/20' : 'border-border-base focus:ring-primary-500/20 focus:border-primary-500'
                 }`}
               />
@@ -141,7 +141,7 @@ export const CreateGroup = () => {
               <label className="text-sm font-medium text-ink-muted ml-1">Privacy</label>
               <select
                 {...register('privacy')}
-                className="w-full rounded-xl border border-border-base bg-surface-50 dark:bg-surface-900 px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-150 appearance-none"
+                className="w-full rounded-md border border-border-base dark:border-white/10  bg-surface-50 dark:bg-surface-700 px-4 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all duration-150 appearance-none"
               >
                 <option value="public">Public - Anyone can see who's in the group and what they post</option>
                 <option value="private">Private - Only members can see who's in the group and what they post</option>
@@ -149,7 +149,7 @@ export const CreateGroup = () => {
             </div>
           </div>
 
-          <div className="pt-4 border-t border-border-base flex justify-end gap-3">
+          <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => navigate('/groups')}>
               Cancel
             </Button>

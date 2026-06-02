@@ -20,6 +20,8 @@ import {
   ReactionTargetType,
 } from '@/reactions/entities/reaction.entity';
 import { Folder } from '@/common/constants/constants';
+import { Group } from '@/groups/entities/group.entity';
+import { GroupMember, GroupMemberStatus } from '@/groups/entities/group-member.entity';
 
 @Injectable()
 export class PostsService {
@@ -80,6 +82,26 @@ export class PostsService {
           const mediaRepo = transactionManager.getRepository(Media);
           const friendshipRepository =
             this.getFriendshipRepository(transactionManager);
+
+          if (createPostDto.group_id) {
+            const groupRepo = transactionManager.getRepository(Group);
+            const group = await groupRepo.findOne({ where: { id: createPostDto.group_id } });
+            if (!group) {
+              throw new BadRequestException('Group not found');
+            }
+
+            const groupMemberRepo = transactionManager.getRepository(GroupMember);
+            const isMember = await groupMemberRepo.findOne({
+              where: {
+                group_id: createPostDto.group_id,
+                user_id: authorId,
+                status: GroupMemberStatus.ACTIVE,
+              },
+            });
+            if (!isMember) {
+              throw new BadRequestException('Only active group members can create posts in this group');
+            }
+          }
 
           const post = postRepo.create({
             ...createPostDto,
