@@ -7,9 +7,10 @@ import { Feed } from './entities/feeds.entity';
 import { MediasModule } from '@/medias/medias.module';
 import { Friendship } from '@/friendships/entities/friendship.entity';
 import { CommentsModule } from '@/comments/comments.module';
+import { ReactionsModule } from '@/reactions/reactions.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, Feed, Friendship]), MediasModule, CommentsModule],
+  imports: [TypeOrmModule.forFeature([Post, Feed, Friendship]), MediasModule, CommentsModule, ReactionsModule],
   controllers: [PostsController],
   providers: [PostsService],
   exports: [PostsService],

@@ -19,6 +19,9 @@ import { Group } from '@/groups/entities/group.entity';
 import { GroupMember } from '@/groups/entities/group-member.entity';
 import { Feed } from '@/posts/entities/feeds.entity';
 import { Reaction } from '@/reactions/entities/reaction.entity';
+import { Message } from '@/conversations/entities/message.entity';
+import { ConversationMember } from '@/conversations/entities/conversation-member.entity';
+import { Conversation } from '@/conversations/entities/conversation.entity';
 
 @Entity('users')
 export class User {
@@ -82,6 +85,15 @@ export class User {
 
   @OneToMany(() => Reaction, (reaction) => reaction.author)
   reactions!: Reaction[];
+
+  @OneToMany(() => Message, (message) => message.sender)
+  sent_messages!: Message[];
+
+  @OneToMany(() => ConversationMember, (conversation_member) => conversation_member.user)
+  conversation_members!: ConversationMember[];
+
+  @OneToMany(() => Conversation, (conversation) => conversation.creator)
+  conversations_created!: Conversation[];
 
   @BeforeInsert()
   generateId() {

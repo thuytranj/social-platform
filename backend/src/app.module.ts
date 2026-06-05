@@ -14,10 +14,12 @@ import { MediasModule } from './medias/medias.module';
 import { ReactionsModule } from './reactions/reactions.module';
 import { CommentsModule } from './comments/comments.module';
 import { GroupsModule } from './groups/groups.module';
+import { ConversationsModule } from './conversations/conversations.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule, PostsModule, MediasModule, ReactionsModule, CommentsModule, GroupsModule],
+  imports: [ConfigModule.forRoot({isGlobal: true}), TypeOrmModule.forRoot(config), CommonModule, EmailModule, UsersModule, AuthModule, FriendshipsModule, PostsModule, MediasModule, ReactionsModule, CommentsModule, GroupsModule, ConversationsModule, SupabaseModule],
   controllers: [AppController],
   providers: [AppService],
 })

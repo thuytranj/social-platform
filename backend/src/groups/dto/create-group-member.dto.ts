@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsOptional } from "class-validator";
-import {GroupRole} from "../entities/group-member.entity";
-import {GroupStatus} from "../entities/group-member.entity";
+import { GroupRole } from "../entities/group-member.entity";
+import { GroupMemberStatus } from "../entities/group-member.entity";
 
 export class CreateGroupMemberDto {
   @IsString()
@@ -10,7 +10,7 @@ export class CreateGroupMemberDto {
   @IsOptional()
   role?: GroupRole;
 
-  @IsEnum(GroupStatus)
+  @IsEnum(GroupMemberStatus)
   @IsOptional()
-  status?: GroupStatus;
+  status?: GroupMemberStatus;
 }

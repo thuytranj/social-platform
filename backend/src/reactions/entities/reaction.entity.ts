@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "@/users/entities/user.entity";
 
 export enum ReactionType {
@@ -13,6 +13,7 @@ export enum ReactionType {
 export enum ReactionTargetType {
   POST = 'post',
   COMMENT = 'comment',
+  MESSAGE = 'message',
 }
 
 @Entity('reactions')
@@ -41,6 +42,7 @@ export class Reaction {
   type!: ReactionType;
 
   @ManyToOne(() => User, (user) => user.reactions, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'author_id' })
   author!: User;
 
   @CreateDateColumn()

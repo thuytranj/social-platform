@@ -4,6 +4,7 @@ import { CreateDateColumn, Entity, Column, PrimaryGeneratedColumn, UpdateDateCol
 import { Group } from "@/groups/entities/group.entity";
 import { Feed } from "./feeds.entity";
 import { PostMedia } from "@/medias/entities/post-media.entity";
+import { File } from "@/supabase/entities/file.entity";
 
 export enum PostPrivacy {
   PUBLIC = 'public',
@@ -92,4 +93,7 @@ export class Post {
 
   @OneToMany(() => Post, (post) => post.root_post)
   all_shares!: Post[];
+
+  @OneToMany(() => File, (file) => file.post)
+  files: File[];
 }

@@ -10,10 +10,6 @@ export class CreateGroupDto {
   @IsOptional()
   description?: string;
 
-  @IsString()
-  @IsOptional()
-  cover_url?: string;
-
   @IsEnum(GroupPrivacy)
   @IsOptional()
   privacy?: GroupPrivacy;

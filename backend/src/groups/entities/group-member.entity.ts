@@ -3,12 +3,13 @@ import { Group } from "./group.entity";
 import { User } from "@/users/entities/user.entity";
 
 export enum GroupRole {
+  OWNER = 'owner',
   MEMBER = 'member',
   ADMIN = 'admin',
   MODERATOR = 'moderator',
 }
 
-export enum GroupStatus {
+export enum GroupMemberStatus {
   ACTIVE = 'active',
   BANNED = 'banned',
   PENDING = 'pending',
@@ -37,10 +38,10 @@ export class GroupMember {
 
   @Column({
     type: 'enum',
-    enum: GroupStatus,
-    default: GroupStatus.ACTIVE
+    enum: GroupMemberStatus,
+    default: GroupMemberStatus.ACTIVE
   })
-  status: GroupStatus = GroupStatus.ACTIVE;
+  status: GroupMemberStatus = GroupMemberStatus.ACTIVE;
 
   @CreateDateColumn()
   joined_at!: Date;

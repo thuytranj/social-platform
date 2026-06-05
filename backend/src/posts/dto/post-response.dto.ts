@@ -7,10 +7,10 @@ export class PostResponseDto {
   @Expose()
   id!: string;
 
-  @Exclude()
+  @Expose()
   group_id?: string;
 
-  @Exclude()
+  @Expose()
   author_id!: string;
 
   @Expose()

@@ -18,7 +18,13 @@ export class ProfileResponseDto {
   avatar_url!: string;
 
   @Expose()
+  avatar_public_id!: string;
+
+  @Expose()
   cover_url!: string;
+
+  @Expose()
+  cover_public_id!: string;
 
   @Expose()
   bio!: string;
